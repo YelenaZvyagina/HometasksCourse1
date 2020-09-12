@@ -1,6 +1,6 @@
 # Hometasks
 
-[Enter useful description for MyTask]
+Репозиторий для домашних заданий по программированию
 
 ---
 
