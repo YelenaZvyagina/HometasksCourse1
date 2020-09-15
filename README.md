@@ -10,8 +10,8 @@
 
 GitHub Actions |
 :---: |
-[![GitHub Actions](https://github.com/YelenaZvyagina/MyTask/workflows/Build%20master/badge.svg)](https://github.com/YelenaZvyagina/MyTask/actions?query=branch%3Amaster) |
-[![Build History](https://buildstats.info/github/chart/YelenaZvyagina/MyTask)](https://github.com/YelenaZvyagina/MyTask/actions?query=branch%3Amaster) |
+[![GitHub Actions](https://github.com/YelenaZvyagina/Hometasks/workflows/Build%20master/badge.svg)](https://github.com/YelenaZvyagina/Hometasks/actions?query=branch%3Amaster) |
+[![Build History](https://buildstats.info/github/chart/YelenaZvyagina/Hometasks)](https://github.com/YelenaZvyagina/Hometasks/actions?query=branch%3Amaster) |
 
 ## NuGet
 
