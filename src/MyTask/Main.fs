@@ -1,88 +1,81 @@
 namespace MyTask
 
-open System.Reflection
-
-module AssemblyInfo =
-
-    let metaDataValue (mda: AssemblyMetadataAttribute) = mda.Value
-
-    let getMetaDataAttribute (assembly: Assembly) key =
-        assembly.GetCustomAttributes(typedefof<AssemblyMetadataAttribute>)
-        |> Seq.cast<AssemblyMetadataAttribute>
-        |> Seq.find (fun x -> x.Key = key)
-
-    let getReleaseDate assembly =
-        "ReleaseDate"
-        |> getMetaDataAttribute assembly
-        |> metaDataValue
-
-    let getGitHash assembly =
-        "GitHash"
-        |> getMetaDataAttribute assembly
-        |> metaDataValue
-
-    let getVersion assembly =
-        "AssemblyVersion"
-        |> getMetaDataAttribute assembly
-        |> metaDataValue
-
-    let assembly = lazy (Assembly.GetEntryAssembly())
-
-    let printVersion() =
-        let version = assembly.Force().GetName().Version
-        printfn "%A" version
-
-    let printInfo() =
-        let assembly = assembly.Force()
-        let name = assembly.GetName()
-        let version = assembly.GetName().Version
-        let releaseDate = getReleaseDate assembly
-        let githash = getGitHash assembly
-        printfn "%s - %A - %s - %s" name.Name version releaseDate githash
-
-module Say =
-    open System
-
-    let nothing name = name |> ignore
-
-    let hello name = sprintf "Hello %s" name
-
-    let colorizeIn color str =
-        let oldColor = Console.ForegroundColor
-        Console.ForegroundColor <- (Enum.Parse(typedefof<ConsoleColor>, color) :?> ConsoleColor)
-        printfn "%s" str
-        Console.ForegroundColor <- oldColor
-
 module Main =
     open Argu
 
+    open System
+
     type CLIArguments =
-        | Info
-        | Version
-        | Favorite_Color of string // Look in App.config
-        | [<MainCommand>] Hello of string
+        |Task1 of x:int 
+        |Task2 of x:int 
+        |Task3 of n:int * x:int
+        |Task4 of n:int * a:int * b:int
+        |Task5 
+        |Task6 of n:int * i:int * j:int
         interface IArgParserTemplate with
             member s.Usage =
                 match s with
-                | Info -> "More detailed information"
-                | Version -> "Version of application"
-                | Favorite_Color _ -> "Favorite color"
-                | Hello _ -> "Who to say hello to"
+                | Task1 _ -> "Solves task number 1. Enter x"
+                | Task2 _ -> "Solves task number 2. Enter x"
+                | Task3 _ -> "Solves task number 3. Enter n - number of elements in array. Enter x" 
+                | Task4 _ -> "Solves task number 4. Enter n - number of elements in array. Enter x. Enter n - number of elements in array. Enter a - left limit. Enter b - right limit"
+                | Task5  -> "Solves task number 5."
+                | Task6 _ -> "Solves task number 6. Enter n - number of elements in array. Enter i. Enter j."
 
     [<EntryPoint>]
     let main (argv: string array) =
-        let parser = ArgumentParser.Create<CLIArguments>(programName = "MyTask")
-        let results = parser.Parse(argv)
-        if results.Contains Version then
-            AssemblyInfo.printVersion()
-        elif results.Contains Info then
-            AssemblyInfo.printInfo()
-        elif results.Contains Hello then
-            match results.TryGetResult Hello with
-            | Some v ->
-                let color = results.GetResult Favorite_Color
-                Say.hello v |> Say.colorizeIn color
-            | None -> parser.PrintUsage() |> printfn "%s"
-        else
-            parser.PrintUsage() |> printfn "%s"
-        0
+        try
+            let parser = ArgumentParser.Create<CLIArguments>(programName = "MyTask")
+            let results = parser.Parse(argv)
+            let args = parser.ParseCommandLine argv
+            
+            if args.Contains(Task1)
+            then
+                let x = args.GetResult(Task1)
+                let res = Ht_2.task1 x
+                printfn "Task 1 result = %A" res
+                
+            elif args.Contains(Task2)
+            then
+                let x = args.GetResult(Task2)
+                let res = Ht_2.task2 x
+                printfn "Task 2 result = %A" res
+            elif args.Contains(Task3)
+            then
+                let n, x = args.GetResult(Task3)
+                let ar = Ht_2.randomArray n
+                printf "Generated array: "
+                printfn "%A" ar
+                let res = Ht_2.task3 (ar, x)
+                printf "Task 3 result = %A" res
+            elif args.Contains(Task4)
+            then
+                let n, a, b = args.GetResult(Task4)
+                let ar = Ht_2.randomArray n
+                printf "Generated array: "
+                printfn "%A" ar
+                let res = Ht_2.task4 (ar, a, b)
+                printf "Task 4 result = %A" res
+            elif args.Contains(Task5)
+            then
+                let ar = Ht_2.randomArray 2
+                printf "Generated array: "
+                printfn "%A" ar
+                let res = Ht_2.task5 (ar)
+                printf "Task 5 result = %A" res
+            elif args.Contains(Task6)
+            then
+                let n, i, j = args.GetResult(Task6)
+                let ar = Ht_2.randomArray n
+                printf "Generated array: "
+                printfn "%A" ar
+                if i > 0 && j > 0 && i < n && j < n then do
+                    let res = Ht_2.task6 (ar, i, j)
+                    printf "Task 6 result = %A" res
+                else printf "Please enter correct index numbers, i,j should be < n"
+            else printfn "This task doesn't exist"
+            0
+        with
+        | :? ArguParseException as ex ->
+            printfn "%s" ex.Message
+            1
