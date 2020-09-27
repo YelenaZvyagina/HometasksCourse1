@@ -1,8 +1,7 @@
 {
   "profiles": {
     "MyTask": {
-      "commandName": "Project",
-      "commandLineArgs": "--task1 5"
+      "commandName": "Project"
     }
   }
 }

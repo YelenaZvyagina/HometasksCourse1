@@ -3,7 +3,9 @@ namespace MyTask
 module Ht_2 =
     open System
 
-    let randomArray n = Array.init n (fun _ -> System.Random().Next())
+    let randomArray n =
+        let rand = System.Random()
+        Array.init n (fun _ -> rand.Next())
 
     let task1 x = x*x*x*x + x*x*x + x*x + x + 1
 
@@ -43,7 +45,10 @@ module Ht_2 =
         ar
 
     let task6 (ar:array<int>, i, j) =
-        ar.[i] <- ar.[j] + ar.[i]
-        ar.[j] <- ar.[i] - ar.[j]
-        ar.[i] <- ar.[i] - ar.[j]
+        if i >= 0 && j >= 0 && i < ar.Length && j < ar.Length then do
+            ar.[i] <- ar.[j] + ar.[i]
+            ar.[j] <- ar.[i] - ar.[j]
+            ar.[i] <- ar.[i] - ar.[j]
         ar
+        
+

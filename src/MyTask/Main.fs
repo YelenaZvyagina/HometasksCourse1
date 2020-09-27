@@ -18,7 +18,7 @@ module Main =
                 | Task1 _ -> "Solves task number 1. Enter x"
                 | Task2 _ -> "Solves task number 2. Enter x"
                 | Task3 _ -> "Solves task number 3. Enter n - number of elements in array. Enter x" 
-                | Task4 _ -> "Solves task number 4. Enter n - number of elements in array. Enter x. Enter n - number of elements in array. Enter a - left limit. Enter b - right limit"
+                | Task4 _ -> "Solves task number 4. Enter n - number of elements in array. Enter a - left limit. Enter b - right limit"
                 | Task5  -> "Solves task number 5."
                 | Task6 _ -> "Solves task number 6. Enter n - number of elements in array. Enter i. Enter j."
 
@@ -69,10 +69,8 @@ module Main =
                 let ar = Ht_2.randomArray n
                 printf "Generated array: "
                 printfn "%A" ar
-                if i > 0 && j > 0 && i < n && j < n then do
-                    let res = Ht_2.task6 (ar, i, j)
-                    printf "Task 6 result = %A" res
-                else printf "Please enter correct index numbers, i,j should be < n"
+                let res = Ht_2.task6 (ar, i, j)
+                printf "Task 6 result = %A" res
             else printfn "This task doesn't exist"
             0
         with
