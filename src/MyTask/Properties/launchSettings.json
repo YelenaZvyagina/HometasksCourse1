@@ -1,7 +1,8 @@
 {
   "profiles": {
     "MyTask": {
-      "commandName": "Project"
+      "commandName": "Project",
+      "commandLineArgs": "--ht3task5 0"
     }
   }
 }
