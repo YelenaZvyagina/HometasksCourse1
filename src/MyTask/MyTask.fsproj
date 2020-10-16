@@ -18,6 +18,7 @@
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
     <None Include="App.config" />
+    <Compile Include="Ht3.fs" />
     <Compile Include="Ht_2.fs" />
     <Compile Include="Main.fs" />
   
