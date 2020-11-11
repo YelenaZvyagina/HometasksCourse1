@@ -15,10 +15,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="C:\Users\Admin\MyTask\Hometask4\Hometask4.fsproj" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Expecto" Version="8.13.1" />
     <PackageReference Include="Expecto.FsCheck" Version="8.13.1" />
     <PackageReference Include="FsCheck" Version="2.14.3" />
@@ -33,4 +29,10 @@
     <PackageReference Update="FSharp.Core" Version="4.7.2" />
   </ItemGroup>
 
+    <ItemGroup>
+        <ProjectReference Include="../../Hometask4/Hometask4.fsproj" />
+    </ItemGroup>
+    
+    <Import Project="..\..\.paket\Paket.Restore.targets" />
+    
 </Project>
