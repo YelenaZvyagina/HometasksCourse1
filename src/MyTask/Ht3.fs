@@ -33,7 +33,6 @@ module Ht3 =
        if n = 0 || n = 1 then n
        elif n < 0 then failwith "It's unreal to find Fibonacci number if N below zero"
        else fibRec(n - 1) + fibRec(n - 2)
-      
 
     let fibIter n =
         if n = 0 || n = 1 then n
