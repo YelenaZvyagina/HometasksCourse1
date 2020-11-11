@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Hometask4": {
+      "commandName": "Project",
+      "commandLineArgs": "--arbubblesort C:\\Users\\Admin\\MyTask\\Hometask4\\input.txt C:\\Users\\Admin\\MyTask\\Hometask4\\output.txt"
+    }
+  }
+}

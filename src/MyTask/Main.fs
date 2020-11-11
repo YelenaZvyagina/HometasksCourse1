@@ -14,8 +14,8 @@ module Main =
         |Ht2Task5 
         |Ht2Task6 of n :int * i:int * j:int
 
-        |Ht3Task1 of n :int
-        |Ht3Task2 of n :int
+        |Ht3Task1 of n :int 
+        |Ht3Task2 of n :int 
         |Ht3Task3 of n :int
         |Ht3Task4 of n :int
         |Ht3Task5 of n :int
