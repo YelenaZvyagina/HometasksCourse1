@@ -39,7 +39,7 @@ module Main =
 
             let forSorts cliarg readfun sortfun writefun =
                 let i, o = fst cliarg, snd cliarg
-                writefun( o, sortfun( readfun(i) ) )
+                writefun (o, sortfun (readfun(i)))
 
             let forSomePacks cliarg packfun =
                 let i = cliarg
@@ -49,7 +49,7 @@ module Main =
             if args.Contains(Pack32to64)
             then
                 let a, b = args.GetResult(Pack32to64)
-                let res = Ht4.pack32to64(a, b)
+                let res = Ht4.pack32to64 a b
                 printfn "%A" res
             elif args.Contains(Pack16to64)
             then
@@ -61,19 +61,19 @@ module Main =
                 forSomePacks (args.GetResult(Pack64to32)) Ht4.pack64to32
             elif args.Contains(Pack64to16)
             then
-                forSomePacks ( args.GetResult(Pack64to16) ) Ht4.pack64to16
+                forSomePacks (args.GetResult(Pack64to16)) Ht4.pack64to16
             elif args.Contains(ArBubbleSort)
             then
-                forSorts ( args.GetResult(ArBubbleSort) ) Ht4.readArray Ht4.arBubbleSort Ht4.writeArray
+                forSorts (args.GetResult(ArBubbleSort)) Ht4.readArray Ht4.arBubbleSort Ht4.writeArray
             elif args.Contains(ArQuickSort)
             then
-                forSorts ( args.GetResult(ArQuickSort) ) Ht4.readArray Ht4.arQuickSort Ht4.writeArray
+                forSorts (args.GetResult(ArQuickSort)) Ht4.readArray Ht4.arQuickSort Ht4.writeArray
             elif args.Contains(ListBubbleSort)
             then
-                forSorts ( args.GetResult(ListBubbleSort) ) Ht4.readList Ht4.listBubbleSort Ht4.writeList
+                forSorts (args.GetResult(ListBubbleSort)) Ht4.readList Ht4.listBubbleSort Ht4.writeList
             elif args.Contains(ListQuickSort)
             then
-                forSorts ( args.GetResult(ListQuickSort) ) Ht4.readList Ht4.listQuickSort Ht4.writeList
+                forSorts (args.GetResult(ListQuickSort)) Ht4.readList Ht4.listQuickSort Ht4.writeList
             else printfn "This task doesn't exist"
             0
         with

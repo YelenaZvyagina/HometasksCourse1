@@ -35,8 +35,8 @@ module Ht4Tests =
     let propertyPackTests =
         testList "Tests for packing functions using Test Property"
             [
-             testProperty  "Unpacking int64 to int32 and packing back" <| fun (a:int64) ->
-                 Expect.equal a ( Ht4.pack32to64( Ht4.pack64to32(a) ) ) "Results should be equal"
+             testProperty  "Unpacking int64 to int32 and packing back" <| fun a b ->
+                 Expect.equal (a, b) ( Ht4.pack64to32( Ht4.pack32to64 a b ) ) "Results should be equal"
 
              testProperty  "Unpacking int64 to int16 and packing back" <| fun (a:int64) ->
                  Expect.equal a ( Ht4.pack16to64( Ht4.pack64to16(a) ) ) "Results should be equal"
