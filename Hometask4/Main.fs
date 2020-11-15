@@ -39,7 +39,7 @@ module Main =
 
             let forSorts cliarg readfun sortfun writefun =
                 let i, o = fst cliarg, snd cliarg
-                writefun (o, sortfun (readfun(i)))
+                writefun (o, sortfun (readfun i))
 
             let forSomePacks cliarg packfun =
                 let i = cliarg

@@ -78,16 +78,16 @@ module Ht4 =
     let pack32to64 a b =
         if b >= 0
         then
-            (int64(a) <<< 32) + int64(b) 
+            (int64 a <<< 32) + int64 b
         else
-            (int64(a+1) <<< 32) + int64(b)
+            (int64(a+1) <<< 32) + int64 b 
 
     let pack16to32 (a:int16) (b:int16) =
         if b >= 0s
         then
-            (int32(a) <<< 16) + int32(b)
+            (int32 a <<< 16) + int32 b
         else
-            (int32(a + 1s) <<< 16) + int32(b)
+            (int32(a + 1s) <<< 16) + int32 b
 
     let pack64to32 (c:int64) =
         int32(c >>> 32), int32((c <<< 32) >>> 32)
