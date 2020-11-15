@@ -26,16 +26,16 @@ module Ht4Tests =
              let tpSort func1 func2 inputVal msg =
                 Expect.equal (func1 inputVal) (func2 inputVal) msg
 
-             testProperty "Comparing sorts for lists" <| fun l -> tpSort Ht4.listQuickSort Ht4.listBubbleSort l "Results for listQuickSort and listBubbleSort should be equal"
-             testProperty "Comparing Quick sort and System Sort for lists" <| fun l -> tpSort Ht4.listQuickSort  List.sort l "Results for listQuickSort and system list sort should be equal"
-             testProperty "Comparing Bubble sort and System Sort for lists" <| fun l -> tpSort Ht4.listBubbleSort  List.sort l "Results for listBubbleSort and system list sort should be equal"
+             testProperty "Comparing sorts for lists" <| fun (l:list<int>) -> tpSort Ht4.listQuickSort Ht4.listBubbleSort (l:list<int>) "Results for listQuickSort and listBubbleSort should be equal"
+             testProperty "Comparing Quick sort and System Sort for lists" <| fun (l:list<int>) -> tpSort Ht4.listQuickSort  List.sort (l:list<int>) "Results for listQuickSort and system list sort should be equal"
+             testProperty "Comparing Bubble sort and System Sort for lists" <| fun (l:list<int>) -> tpSort Ht4.listBubbleSort  List.sort (l:list<int>) "Results for listBubbleSort and system list sort should be equal"
             ] 
 
     [<Tests>]
     let propertyPackTests =
         testList "Tests for packing functions using Test Property"
             [
-             testProperty  "Unpacking int64 to int32 and packing back" <| fun a b ->
+             testProperty  "Packing int64 to int32 and unpacking back" <| fun a b ->
                  Expect.equal (a, b) (Ht4.pack64to32(Ht4.pack32to64 a b)) "Results should be equal"
 
              testProperty  "Unpacking int64 to int16 and packing back" <| fun (a:int64) ->
