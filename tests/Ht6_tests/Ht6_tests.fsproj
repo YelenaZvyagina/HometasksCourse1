@@ -28,7 +28,8 @@
   </ItemGroup>
 
    <ItemGroup>
-       <ProjectReference Include="../../Hometask6/Hometask6.fsproj" />
+       <ProjectReference Include="../../HometaskSix/HometaskSix.fsproj" />
+
    </ItemGroup>
     
 </Project>
