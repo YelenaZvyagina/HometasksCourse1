@@ -8,8 +8,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include="someTest.txt" />
-    <Content Include="anotherTest.txt" />
     <Compile Include="Tests.fs" />
     <Compile Include="Main.fs" />
   </ItemGroup>
