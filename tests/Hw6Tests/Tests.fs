@@ -4,7 +4,7 @@ module Ht6Tests =
 
     open Expecto
     open System
-    open Ht6   
+    open Ht6
 
     [<Tests>]
 
