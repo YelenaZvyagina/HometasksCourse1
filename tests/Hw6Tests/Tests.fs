@@ -6,9 +6,9 @@ module Ht6Tests =
     open System
     open Ht6
 
-    [<Tests>]
+   (* [<Tests>]
 
-    (* let readMatrixesTests =
+     let readMatrixesTests =
         testList "Tests for readMatrix function"
             [
             testCase "Reading another file" <| fun _ ->
