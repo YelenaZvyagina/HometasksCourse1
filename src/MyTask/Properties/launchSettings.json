@@ -2,7 +2,7 @@
   "profiles": {
     "MyTask": {
       "commandName": "Project",
-      "commandLineArgs": "--ht3task5 0"
+      "commandLineArgs": "--pack32to64 1 2"
     }
   }
 }

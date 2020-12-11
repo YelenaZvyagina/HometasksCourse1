@@ -1,0 +1,38 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+
+    <IsPackable>true</IsPackable>
+    <GenerateProgramFile>false</GenerateProgramFile>
+    <ContainsGenericParameters>false</ContainsGenericParameters>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="Tests.fs" />
+    <Compile Include="AssemblyInfo.fs" />
+    <Compile Include="Main.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Expecto" Version="8.13.1" />
+    <PackageReference Include="Expecto.FsCheck" Version="8.13.1" />
+    <PackageReference Include="FsCheck" Version="2.14.3" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.5.0" />
+    <PackageReference Include="MSTest.TestAdapter" Version="2.1.0" />
+    <PackageReference Include="MSTest.TestFramework" Version="2.1.0" />
+    <PackageReference Include="coverlet.collector" Version="1.2.0" />
+    <PackageReference Include="YoloDev.Expecto.TestSdk" Version="0.8.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Update="FSharp.Core" Version="4.7.2" />
+  </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="../../Hometask4/Hometask4.fsproj" />
+    </ItemGroup>
+    
+    <Import Project="..\..\.paket\Paket.Restore.targets" />
+    
+</Project>
