@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Hometask6": {
+      "commandName": "Project",
+      "commandLineArgs": "--piter C:\\Users\\Admin\\MyTask\\Hometask6\\input.txt"
+    }
+  }
+}
