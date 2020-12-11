@@ -8,7 +8,7 @@ module Ht6Tests =
 
     [<Tests>]
 
-    let readMatrixesTests =
+    (* let readMatrixesTests =
         testList "Tests for readMatrix function"
             [
             testCase "Reading another file" <| fun _ ->
@@ -20,7 +20,7 @@ module Ht6Tests =
                     let subject = Ht6.readMatrix "C:/Users/Admin/MyTask/tests/Hw6Tests/someTest.txt"
                     let m = new Ht6.BoolMatrix (3*1<str>, 3*1<col>, [Cell(0*1<str>, 1*1<col>)])
                     Expect.equal subject.columns m.columns "Matrix should be read correctly" 
-            ]       
+            ]     *)  
 
     [<Tests>]
 
