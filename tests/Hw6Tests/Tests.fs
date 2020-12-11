@@ -11,13 +11,13 @@ module Ht6Tests =
     let readMatrixesTests =
         testList "Tests for readMatrix function"
             [
-            testCase "Reading empty file" <| fun _ ->
-                    let subject = Ht6.readMatrix "C:/Users/Admin/MyTask/tests/Hw6Tests/someTest.txt"
+            testCase "Reading another file" <| fun _ ->
+                    let subject = Ht6.readMatrix "C:/Users/Admin/MyTask/tests/Hw6Tests/anotherTest.txt" 
                     let m = new BoolMatrix (4*1<str>, 5*1<col>, [Cell(0*1<str>, 0*1<col>); Cell(0*1<str>, 2*1<col>); Cell(2*1<str>, 1*1<col>)])
                     Expect.equal subject m "Matrix should be read correctly" 
 
             testCase "Reading some file" <| fun _ ->
-                    let subject = Ht6.readMatrix  "C:/Users/Admin/MyTask/tests/Hw6Tests/anotherTest.txt"
+                    let subject = Ht6.readMatrix "C:/Users/Admin/MyTask/tests/Hw6Tests/someTest.txt"
                     let m = new Ht6.BoolMatrix (3*1<str>, 3*1<col>, [Cell(0*1<str>, 1*1<col>)])
                     Expect.equal subject.columns m.columns "Matrix should be read correctly" 
             ]       
