@@ -38,8 +38,8 @@ module MyList =
 
     let rec map f l =
        match l with
-        | First x -> First(f x)
-        | Cons(h, t) -> Cons(f h, map f t)
+       | First x -> First(f x)
+       | Cons(h, t) -> Cons(f h, map f t)
 
     let sort l =
         let rec _go lst =

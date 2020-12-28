@@ -13,8 +13,8 @@ module MyTree =
         | Node (h, t) -> MyList.fold (fun acc t -> fold f acc t) (f acc h) t
 
     let maxInMyTree tr =
-        fold (fun x y -> if x >=y then x else y) System.Int32.MinValue tr
+        fold (fun x y -> if x >= y then x else y) System.Int32.MinValue tr
 
     let averInMyTree tr =
         let (sum, kol) = fold (fun (sum, kol) elem -> (elem + sum, kol + 1)) (0, 0) tr
-        float(sum/kol)
+        sum/kol

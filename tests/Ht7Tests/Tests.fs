@@ -14,10 +14,17 @@ module Ht7Tests =
                     let h1 = MyList.fold f 10 (MyList.sysListToMyList l)
                     let h2 = List.fold f 10 l
                     Expect.equal h1 h2 "MyList fold and System fold should return the same list"
-             
-             testProperty  "Comparing MyList fold and System List fold for +" <| fun (l:list<int>) -> forFold l (+)
-             testProperty  "Comparing MyList fold and System List fold for -" <| fun (l:list<int>) -> forFold l (-)
-             testProperty  "Comparing MyList fold and System List fold for *" <| fun (l:list<int>) -> forFold l (*)
+
+             testProperty  "Comparing MyList fold and System List fold for + " <| fun (l:list<int>) -> forFold l (+)
+             testProperty  "Comparing MyList fold and System List fold for - " <| fun (l:list<int>) -> forFold l (-)
+             testProperty  "Comparing MyList fold and System List fold for * " <| fun (l:list<int>) -> forFold l (*)
+             testProperty "Comparing MyList fold and System List fold for / " <| fun (l:list<int>) ->
+                let h0 = List.filter ((<>)0) l
+                if h0.Length <> 0
+                then
+                    let h1 = MyList.fold (/) 10 (MyList.sysListToMyList h0)
+                    let h2 = List.fold (/) 10 h0
+                    Expect.equal h1 h2 "MyList fold and System fold should return the same list"
             ]
 
     [<Tests>]
@@ -39,7 +46,6 @@ module Ht7Tests =
                     let h2 = l.Length
                     Expect.equal h1 h2 "MyList fold and System length should return the same value"
           
-
              testProperty "Comparing MyList and System List sort" <| fun (l:list<int>) ->
                 if l.Length <> 0  
                 then 
@@ -56,6 +62,18 @@ module Ht7Tests =
                     let h2 = List.map f l 
                     let h3 = MyList.myListToSystemList h1
                     Expect.equal h2 h3 "MyList fold and System map should return the same list"
+
+             testProperty "Comparing MyList and System List iter" <| fun (l:list<_>) ->
+                if l.Length <> 0
+                then
+                    let l1 = []
+                    let l2 = []
+                    let f x (l:list<_>) =
+                        (fun x -> l @ [x + 5])
+                        ()
+                    List.iter (f l1) l
+                    MyList.iter (MyList.sysListToMyList l) (f l2)
+                    Expect.sequenceEqual l1 l2 "MyList fold and System iter should return the same"
             ]
 
     [<Tests>]
@@ -79,7 +97,7 @@ module Ht7Tests =
             [
              testCase "averInMyTree test" <| fun _ ->
                 let t = (MyTree.Node ((3), MyList.Cons ((MyTree.Leaf (33)), MyList.First (MyTree.Leaf (3)))))
-                Expect.equal (MyTree.averInMyTree t) 13.0 "average of 3, 33 and 3 is 13"
+                Expect.equal (MyTree.averInMyTree t) 13 "average of 3, 33 and 3 is 13"
 
              testCase "maxInMyTree test" <| fun _ ->
                  let t = (MyTree.Node ((3), MyList.Cons ((MyTree.Leaf (33)), MyList.First (MyTree.Leaf (3)))))
