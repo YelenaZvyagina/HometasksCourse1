@@ -66,14 +66,16 @@ module Ht7Tests =
              testProperty "Comparing MyList and System List iter" <| fun (l:list<_>) ->
                 if l.Length <> 0
                 then
-                    let l1 = []
-                    let l2 = []
-                    let f x (l:list<_>) =
-                        (fun x -> l @ [x + 5])
-                        ()
-                    List.iter (f l1) l
-                    MyList.iter (MyList.sysListToMyList l) (f l2)
-                    Expect.sequenceEqual l1 l2 "MyList fold and System iter should return the same"
+                    let a1 = Array.zeroCreate l.Length
+                    let a2 = Array.zeroCreate l.Length
+                    let f (ar:int[]) =
+                        let mutable i = 0
+                        (fun x ->
+                            ar.[i] <- x*5
+                            i <- i + 1)
+                    List.iter (f a1) l
+                    MyList.iter (MyList.sysListToMyList l) (f a2)
+                    Expect.sequenceEqual a1 a2 "MyList fold and System iter should return the same"
             ]
 
     [<Tests>]
