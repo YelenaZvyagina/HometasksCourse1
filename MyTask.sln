@@ -32,7 +32,6 @@ EndProject
 Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "Ht7Tests", "tests\Ht7Tests\Ht7Tests.fsproj", "{2EED13E4-124F-4A51-94AB-32DD6F4EDB3A}"
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Hometask8", "Hometask8\Hometask8.fsproj", "{D80FDD03-EF28-4E95-9EC7-DAF3D2DCA203}"
-Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "Hometask8", "Hometask8\Hometask8.fsproj", "{03475B37-40E7-4377-8F42-E8664B6F0CFA}"
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Ht8Tests", "tests\Ht8Tests\Ht8Tests.fsproj", "{13A4CC0D-9EDB-4DCB-996B-A95953FEA915}"
 EndProject
