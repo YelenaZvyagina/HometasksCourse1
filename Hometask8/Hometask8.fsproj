@@ -6,6 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="AlgStcruct.fs" />
     <Compile Include="Quadtree.fs" />
     <Compile Include="Main.fs" />
   </ItemGroup>
