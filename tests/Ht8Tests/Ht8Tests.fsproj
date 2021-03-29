@@ -24,6 +24,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Hometask8\Hometask8.fsproj" />
+    <ProjectReference Include="..\..\src\MyTask\MyTask.fsproj" />
   </ItemGroup>
 
 </Project>

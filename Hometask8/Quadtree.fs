@@ -56,45 +56,54 @@ let toExCompMatr (cm:CompMatrix) =
         then CompMatrix(m, m, cm.lstNonZero)
         else CompMatrix(toDeg2 m, toDeg2 m, cm.lstNonZero)
 
-let div4matr (m:CompMatrix) =
-    let l1 = List.filter(fun (i, j, k) -> i < (m.lines)/2 && j < (m.columns)/2) (m.lstNonZero)
-    let m1 = new CompMatrix((m.lines)/2, (m.columns)/2, l1)
-    let l2 = List.filter(fun (i, j, k) -> i > (m.lines)/2 && j < (m.columns)/2) (m.lstNonZero)
-    let m2 = new CompMatrix((m.lines)/2, (m.columns)/2, l2)
-    let l3 = List.filter(fun (i, j, k) -> i < (m.lines)/2 && j > (m.columns)/2) (m.lstNonZero)
-    let m3 = new CompMatrix((m.lines)/2, (m.columns)/2, l3)
-    let l4 = List.filter(fun (i, j, k) -> i > (m.lines)/2 && j > (m.columns)/2) (m.lstNonZero)
-    let m4 = new CompMatrix((m.lines)/2, (m.columns)/2, l4)
+let div4matr (m: CompMatrix) =
+    let l1 = List.filter(fun (i, j, k) -> i+1 <= m.lines/2 && j+1 <= m.columns/2) m.lstNonZero
+    let m1 = new CompMatrix(m.lines/2, m.columns/2, l1)
+    let l2 = List.filter (fun (i, j, k) -> i+1 <= m.lines/2 && j+1 > m.columns/2) m.lstNonZero
+    let l2m = List.map (fun (i, j, k) -> i, j - m.columns/2, k) l2
+    let m2 = new CompMatrix(m.lines/2, m.columns/2, l2m)
+    let l3 = List.filter (fun (i, j, k) -> i+1 > m.lines/2 && j+1 <= m.columns/2) m.lstNonZero
+    let l3m = List.map (fun (i, j, k) -> i - m.lines/2, j, k) l3
+    let m3 = new CompMatrix(m.lines/2, m.columns/2, l3m)
+    let l4 = List.filter (fun (i, j, k) -> i+1 > m.lines/2 && j+1 > m.columns / 2) m.lstNonZero
+    let l4m = List.map (fun (i, j, k) -> i - m.lines/2, j - m.columns/2, k) l4
+    let m4 = new CompMatrix(m.lines/2, m.columns/2, l4m)
     (m1, m2, m3, m4)
 
-let cmatrToQtWS (cm:CompMatrix) =
-    let x = cm.lines
-    let y = cm.columns
+let cmatrToQtWS (cm:CompMatrix) = 
     let rec inner (m:CompMatrix) =
         if List.isEmpty m.lstNonZero then QuadTree.None
         elif m.lines = 1 && m.columns = 1 && m.lstNonZero.Length <> 0
         then QuadTree.Leaf <| third (m.lstNonZero.Head)
         else
             let (m1, m2, m3, m4) = div4matr m
-            QuadTree.Node(inner m1, inner m2, inner m3, inner m4)
+            let nw = inner m1
+            let ne = inner m2
+            let sw = inner m3
+            let se = inner m4
+            reduceNone (nw, ne, sw, se)
     let a = inner (toExCompMatr cm)
+    let x = (toExCompMatr cm).lines
+    let y = (toExCompMatr cm).columns
     QuadTreeWithSize(a, x, y)
 
-let sumQuadTrWS (qtws1:QuadTreeWithSize<int>) (qtws2:QuadTreeWithSize<int>) (astr:AlStruct<int>) =
-    let oper = third (getPars astr)
+let rec sumInner (qt1:QuadTree<int>) (qt2:QuadTree<int>) (astr:AlStruct<int>) =
+    let oper = second (getPars astr)
     let zero = first (getPars astr)
+    match qt1, qt2 with
+    | None, x -> x
+    | x, None -> x
+    | Leaf a, Leaf b -> if (oper a b) = zero then None else Leaf (oper a b)
+    | Node (a1, a2, a3, a4), Node (b1, b2, b3, b4) ->
+        reduceNone ((sumInner a1 b1 astr), (sumInner a2 b2 astr), (sumInner a3 b3 astr), (sumInner a4 b4 astr))
+    | _, _ -> failwith "wrong sizes of matrices"
+
+let sumQuadTrWS (qtws1:QuadTreeWithSize<int>) (qtws2:QuadTreeWithSize<int>) (astr:AlStruct<int>) =
     if qtws1.lines = qtws2.lines && qtws1.columns = qtws2.columns then
         let qt1 = qtws1.qtree
         let qt2 = qtws2.qtree
-        let rec sum qt1 qt2 =
-            match qt1, qt2 with
-            | None, x -> x
-            | x, None -> x
-            | Leaf a, Leaf b -> if (oper a b) = zero then None else Leaf (oper a b)
-            | Node (a1, a2, a3, a4), Node (b1, b2, b3, b4) ->
-                reduceNone (sum a1 b1, sum a2 b2, sum a3 b3, sum a4 b4)
-            | _, _ -> failwith "wrong sizes of matrices"
-        QuadTreeWithSize ((sum qt1 qt2), qtws1.lines, qtws1.columns)
+        let res = sumInner qt1 qt2 astr
+        QuadTreeWithSize (res, qtws1.lines, qtws1.columns)
     else failwith "Only marices of the same sizes can be summed"
 
 let multQuadTrWS (qtws1:QuadTreeWithSize<int>) (qtws2:QuadTreeWithSize<int>) (astr:AlStruct<int>) =
@@ -107,13 +116,12 @@ let multQuadTrWS (qtws1:QuadTreeWithSize<int>) (qtws2:QuadTreeWithSize<int>) (as
             match qt1, qt2 with
             | None, x -> None
             | x, None -> None
-            | Leaf a, Leaf b -> if oper a b = zero then None else Leaf (oper a b)
+            | Leaf a, Leaf b ->  if (oper a b) = zero then None else Leaf (oper a b)
             | Node(nw1, ne1, sw1, se1), Node(nw2, ne2, sw2, se2) ->
-                let nw = (sumQuadTrWS (QuadTreeWithSize((inner nw1 nw2), 1, 1)) (QuadTreeWithSize((inner ne1 sw2), 1, 1)) astr).qtree
-                //передаю единички в качестве параметров длины и ширины поскольку функция суммы принимает тип QuadTreeWithSize
-                let ne = (sumQuadTrWS (QuadTreeWithSize((inner nw1 ne2), 1, 1)) (QuadTreeWithSize((inner ne1 sw2), 1, 1)) astr).qtree
-                let sw = (sumQuadTrWS (QuadTreeWithSize((inner sw1 nw2), 1, 1)) (QuadTreeWithSize((inner se1 sw2), 1, 1)) astr).qtree
-                let se = (sumQuadTrWS (QuadTreeWithSize((inner sw1 ne2), 1, 1)) (QuadTreeWithSize((inner se1 se2), 1, 1)) astr).qtree
+                let nw = sumInner (inner nw1 nw2) (inner ne1 sw2) astr
+                let ne = sumInner (inner nw1 ne2) (inner ne1 se2) astr
+                let sw = sumInner (inner sw1 nw2) (inner se1 sw2) astr
+                let se = sumInner (inner sw1 ne2) (inner se1 se2) astr
                 reduceNone (nw, ne, sw, se)
             | _, _ -> failwith "Wrong sizes of matrices"
         QuadTreeWithSize((inner qt1 qt2), qtws1.lines, qtws2.columns)
@@ -125,14 +133,14 @@ let multQtToNum (num:int) (qt:QuadTree<int>) (astr:AlStruct<int>) =
     let rec inner (num:int) (qt:QuadTree<int>) =
         match qt with
         | None -> None
-        | Leaf a -> if oper a num = zero then None else Leaf (oper a num)
+        | Leaf a -> Leaf (oper a num)
         | Node (a1, a2, a3, a4) ->
             let nw = inner num a1
             let ne = inner num a2
             let sw = inner num a3
             let se = inner num a4
-            reduceNone (nw, ne, sw, se)
-    inner num qt
+            Node(nw, ne, sw, se)
+    if num = zero then None else inner num qt
 
 let tenzMultQuadTr (qtws1:QuadTreeWithSize<int>) (qtws2:QuadTreeWithSize<int>) (astr:AlStruct<int>) =
     let qt1 = qtws1.qtree
@@ -151,3 +159,4 @@ let tenzMultQuadTr (qtws1:QuadTreeWithSize<int>) (qtws2:QuadTreeWithSize<int>) (
             reduceNone(nw, ne, sw, se)
         | _, _ -> failwith "Something went wrong"
     QuadTreeWithSize ((inner qt1 qt2), (qtws1.lines * qtws2.lines), (qtws1.columns * qtws2.columns))
+
