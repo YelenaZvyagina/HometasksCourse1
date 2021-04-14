@@ -106,25 +106,27 @@ let sumQuadTrWS (qtws1:QuadTreeWithSize<int>) (qtws2:QuadTreeWithSize<int>) (ast
         QuadTreeWithSize (res, qtws1.lines, qtws1.columns)
     else failwith "Only marices of the same sizes can be summed"
 
-let multQuadTrWS (qtws1:QuadTreeWithSize<int>) (qtws2:QuadTreeWithSize<int>) (astr:AlStruct<int>) =
+let rec multInner (qt1:QuadTree<int>) (qt2:QuadTree<int>) (astr: AlStruct<int>) =
     let zero = first (getPars astr)
     let oper = third (getPars astr)
+    match qt1, qt2 with
+    | None, x -> None
+    | x, None -> None
+    | Leaf a, Leaf b ->  if (oper a b) = zero then None else Leaf (oper a b)
+    | Node(nw1, ne1, sw1, se1), Node(nw2, ne2, sw2, se2) ->
+        let nw = sumInner (multInner nw1 nw2 astr) (multInner ne1 sw2 astr) astr
+        let ne = sumInner (multInner nw1 ne2 astr) (multInner ne1 se2 astr) astr
+        let sw = sumInner (multInner sw1 nw2 astr) (multInner se1 sw2 astr) astr
+        let se = sumInner (multInner sw1 ne2 astr) (multInner se1 se2 astr) astr
+        reduceNone (nw, ne, sw, se)
+    | _, _ -> failwith "Wrong sizes of matrices"
+
+let multQuadTrWS (qtws1:QuadTreeWithSize<int>) (qtws2:QuadTreeWithSize<int>) (astr:AlStruct<int>) =
     if qtws1.lines = qtws2.columns then
         let qt1 = qtws1.qtree
         let qt2 = qtws2.qtree
-        let rec inner (qt1:QuadTree<int>) (qt2:QuadTree<int>) =
-            match qt1, qt2 with
-            | None, x -> None
-            | x, None -> None
-            | Leaf a, Leaf b ->  if (oper a b) = zero then None else Leaf (oper a b)
-            | Node(nw1, ne1, sw1, se1), Node(nw2, ne2, sw2, se2) ->
-                let nw = sumInner (inner nw1 nw2) (inner ne1 sw2) astr
-                let ne = sumInner (inner nw1 ne2) (inner ne1 se2) astr
-                let sw = sumInner (inner sw1 nw2) (inner se1 sw2) astr
-                let se = sumInner (inner sw1 ne2) (inner se1 se2) astr
-                reduceNone (nw, ne, sw, se)
-            | _, _ -> failwith "Wrong sizes of matrices"
-        QuadTreeWithSize((inner qt1 qt2), qtws1.lines, qtws2.columns)
+        let res = multInner qt1 qt2 astr 
+        QuadTreeWithSize(res, qtws1.lines, qtws2.columns)
     else failwith "Wrong sizes of matrices"
 
 let multQtToNum (num:int) (qt:QuadTree<int>) (astr:AlStruct<int>) =
