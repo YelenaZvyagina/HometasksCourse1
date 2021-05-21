@@ -162,3 +162,27 @@ let tenzMultQuadTr (qtws1:QuadTreeWithSize<int>) (qtws2:QuadTreeWithSize<int>) (
         | _, _ -> failwith "Something went wrong"
     QuadTreeWithSize ((inner qt1 qt2), (qtws1.lines * qtws2.lines), (qtws1.columns * qtws2.columns))
 
+let parMultQuadTree (qt1:QuadTree<int>) (qt2:QuadTree<int>) (astr: AlStruct<int>) lim =
+    let zero = first (getPars astr)
+    let oper = third (getPars astr)
+    let rec inner qt1 qt2 count =
+        match qt1, qt2 with
+        | None, x | x, None -> None
+        | Leaf a, Leaf b -> if (oper a b) = zero then None else Leaf (oper a b)
+        | Node(nw1, ne1, sw1, se1), Node(nw2, ne2, sw2, se2) ->
+            if count < lim
+            then
+                let s1 = async.Return (sumInner (inner nw1 nw2 (count + 1)) (inner ne1 sw2 (count + 1)) astr)
+                let s2 = async.Return (sumInner (inner nw1 ne2 (count + 1)) (inner ne1 se2 (count + 1)) astr)
+                let s3 = async.Return (sumInner (inner sw1 nw2 (count + 1)) (inner se1 sw2 (count + 1)) astr)
+                let s4 = async.Return (sumInner (inner sw1 ne2 (count + 1)) (inner se1 se2 (count + 1)) astr)
+                let s = [s1; s2; s3; s4] |> Async.Parallel |> Async.RunSynchronously
+                reduceNone (s.[0], s.[1], s.[2], s.[3])
+            else 
+                let nw = sumInner (multInner nw1 nw2 astr) (multInner ne1 sw2 astr) astr
+                let ne = sumInner (multInner nw1 ne2 astr) (multInner ne1 se2 astr) astr
+                let sw = sumInner (multInner sw1 nw2 astr) (multInner se1 sw2 astr) astr
+                let se = sumInner (multInner sw1 ne2 astr) (multInner se1 se2 astr) astr
+                reduceNone (nw, ne, sw, se)
+        | _, _ -> failwith "something went wrong"
+    inner qt1 qt2 0
