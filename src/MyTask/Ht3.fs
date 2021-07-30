@@ -8,8 +8,8 @@ module Ht3 =
         for i = 0 to n - 1 do
             unit.[i, i] <- 1
         unit
-        
-    
+
+
     let matrixMult (m1 : int [,]) (m2 : int [,]) =
         if (m1.GetLength 1 = m2.GetLength 0) then 
             let a = m1.GetLength 0
