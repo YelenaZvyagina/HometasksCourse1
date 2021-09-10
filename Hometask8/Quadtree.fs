@@ -70,7 +70,7 @@ let div4matr (m: CompMatrix) =
     let m4 = new CompMatrix(m.lines/2, m.columns/2, l4m)
     (m1, m2, m3, m4)
 
-let cmatrToQtWS (cm:CompMatrix) = 
+let cmatrToQtWS (cm:CompMatrix) =
     let rec inner (m:CompMatrix) =
         if List.isEmpty m.lstNonZero then QuadTree.None
         elif m.lines = 1 && m.columns = 1 && m.lstNonZero.Length <> 0
@@ -86,6 +86,25 @@ let cmatrToQtWS (cm:CompMatrix) =
     let x = (toExCompMatr cm).lines
     let y = (toExCompMatr cm).columns
     QuadTreeWithSize(a, x, y)
+
+let cmatrToQt (cm:CompMatrix) =
+    let rec inner (m:CompMatrix) =
+        if List.isEmpty m.lstNonZero then QuadTree.None
+        elif m.lines = 1 && m.columns = 1 && m.lstNonZero.Length <> 0
+        then QuadTree.Leaf <| third (m.lstNonZero.Head)
+        else
+            let (m1, m2, m3, m4) = div4matr m
+            let nw = inner m1
+            let ne = inner m2
+            let sw = inner m3
+            let se = inner m4
+            reduceNone (nw, ne, sw, se)
+    inner (toExCompMatr cm)
+
+let cmatrTo2d (cm : CompMatrix) =
+    let matr2d = Array2D.zeroCreate cm.lines cm.columns
+    List.iter (fun (x, y, elem) -> matr2d.[x, y] <- elem ) cm.lstNonZero
+    matr2d
 
 let rec sumInner (qt1:QuadTree<int>) (qt2:QuadTree<int>) (astr:AlStruct<int>) =
     let oper = second (getPars astr)
@@ -125,7 +144,7 @@ let multQuadTrWS (qtws1:QuadTreeWithSize<int>) (qtws2:QuadTreeWithSize<int>) (as
     if qtws1.lines = qtws2.columns then
         let qt1 = qtws1.qtree
         let qt2 = qtws2.qtree
-        let res = multInner qt1 qt2 astr 
+        let res = multInner qt1 qt2 astr
         QuadTreeWithSize(res, qtws1.lines, qtws2.columns)
     else failwith "Wrong sizes of matrices"
 
@@ -178,7 +197,7 @@ let parMultQuadTree (qt1:QuadTree<int>) (qt2:QuadTree<int>) (astr: AlStruct<int>
                 let s4 = async.Return (sumInner (inner sw1 ne2 (count + 1)) (inner se1 se2 (count + 1)) astr)
                 let s = [s1; s2; s3; s4] |> Async.Parallel |> Async.RunSynchronously
                 reduceNone (s.[0], s.[1], s.[2], s.[3])
-            else 
+            else
                 let nw = sumInner (multInner nw1 nw2 astr) (multInner ne1 sw2 astr) astr
                 let ne = sumInner (multInner nw1 ne2 astr) (multInner ne1 se2 astr) astr
                 let sw = sumInner (multInner sw1 nw2 astr) (multInner se1 sw2 astr) astr

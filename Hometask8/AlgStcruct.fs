@@ -24,3 +24,5 @@ let getPars (a:AlStruct<'t>) =
     match a with
     | Semiring x -> getSemiring x
     | Monoid x -> getMonoid x
+
+let standSemiring = Semiring(new Semiring<int>(new Monoid<int>(0, (+)), (*)))
