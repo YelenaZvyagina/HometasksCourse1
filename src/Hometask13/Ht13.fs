@@ -28,9 +28,8 @@ let parMatrixMult (m1: int[,]) (m2: int[,]) =
 type msg =
     | Go of AsyncReplyChannel<unit>
     | EOS of AsyncReplyChannel<unit>
-    | Matrices of string*CompMatrix*string*CompMatrix*int*AsyncReplyChannel<unit>
-    | Qt of string*QuadTree<int>*string*QuadTree<int>
-    | Ar2d of string*int[,]*string*int[,]
+    | MatrsForBalancer of string*CompMatrix*string*CompMatrix*int*AsyncReplyChannel<unit>
+    | MatrsForMult of string*CompMatrix*string*CompMatrix
 
 let listAllFiles inputPath =
     let files = System.IO.Directory.GetFiles(inputPath)
@@ -60,29 +59,28 @@ let matrixLoader inputPath (balancer:MailboxProcessor<_>) count =
                             inbox.Post (EOS ch)
                             return! loop files 0
                         else failwith "Something went totally wrong"
-                    | file :: files ->
+                    | file1 :: file2 :: files ->
                         if remain = 0 then
                             printfn "Matrix reading is finished!"
                             inbox.Post (EOS ch)
                             return! loop files 0
                         else
-                            printfn "Loading: %A" file
-                            let file2 = files.Head
-                            let matr1 = toCompMatr file
-                            printfn "Loading: %A" file2
+                            printfn "Loading: %A and %A" file1 file2
+                            let matr1 = toCompMatr file1
                             let matr2 = toCompMatr file2
                             remain <- remain - 1
-                            balancer.Post (Matrices (file, matr1, file2, matr2, remain, ch))
+                            balancer.Post (MatrsForBalancer (file1, matr1, file2, matr2, remain, ch))
                             inbox.Post (Go ch)
-
-                            return! loop files.Tail count
+                            return! loop files count
+                    | _ -> failwith "Something went wrong"
+                | _ -> failwith "Something went wrong"
             }
         loop (listAllFiles inputPath) count
-        )
+    )
 
 let balancer (qtSeqMult : MailboxProcessor<_>) (qtParMult : MailboxProcessor<_>) (arSeqMult : MailboxProcessor<_>) (arParMult : MailboxProcessor<_>) =
     MailboxProcessor.Start(fun inbox ->
-        let rec loop =
+        let rec loop () =
             async{
                 let! msg = inbox.Receive()
                 match msg with
@@ -94,17 +92,17 @@ let balancer (qtSeqMult : MailboxProcessor<_>) (qtParMult : MailboxProcessor<_>)
                     arParMult.PostAndReply (fun ch -> EOS ch)
                     printfn "Balancer is finished!"
                     ch.Reply()
-                | Matrices (file1, matr1, file2, matr2, remain, ch) ->
+                | MatrsForBalancer (file1, matr1, file2, matr2, remain, ch) ->
                     if matr1.lines = matr2.columns then
                         printfn "Processing %A and %A" file1 file2
                         let big = (matr1.lines >= 1000 || matr2.columns >= 1000)
                         let sparse = (matr1.lines*matr1.columns >=  2*matr1.lstNonZero.Length || matr2.lines*matr2.columns >= 2*matr2.lstNonZero.Length)
                         match big, sparse with
-                        | true, true -> qtParMult.Post (Qt (file1, (cmatrToQt matr1), file2, (cmatrToQt matr2)))
-                        | true, false -> arParMult.Post (Ar2d (file1, (cmatrTo2d matr1), file2, (cmatrTo2d matr2)))
-                        | false, true -> qtSeqMult.Post (Qt (file1, (cmatrToQt matr1), file2, (cmatrToQt matr2)))
-                        | false, false -> arSeqMult.Post (Ar2d (file1, (cmatrTo2d matr1), file2, (cmatrTo2d matr2)))
-                        return! loop
+                        | true, true -> qtParMult.Post (MatrsForMult (file1, matr1, file2, matr2))
+                        | true, false -> arParMult.Post (MatrsForMult (file1, matr1, file2, matr2))
+                        | false, true -> qtSeqMult.Post (MatrsForMult (file1, matr1, file2, matr2))
+                        | false, false -> arSeqMult.Post (MatrsForMult (file1, matr1, file2, matr2))
+                        return! loop ()
                     else
                         printfn "Processing %A and %A" file1 file2
                         printfn "Matrices of these sizes cannot be multiplied"
@@ -114,11 +112,11 @@ let balancer (qtSeqMult : MailboxProcessor<_>) (qtParMult : MailboxProcessor<_>)
                             qtParMult.PostAndReply (fun ch -> EOS ch)
                             arParMult.PostAndReply (fun ch -> EOS ch)
                             ch.Reply()
-                        return! loop
-
+                        return! loop ()
+                    | _ -> failwith "Something went wrong"
             }
-        loop
-        )
+        loop ()
+    )
 
 let qtSeqMult =
     MailboxProcessor.Start(fun inbox ->
@@ -129,13 +127,14 @@ let qtSeqMult =
                 | EOS ch ->
                     printfn "qtSeqMult is finished!"
                     ch.Reply()
-                | Qt (file1, qt1, file2, qt2) ->
+                | MatrsForMult (file1, matr1, file2, matr2) ->
                     printfn "Multing: %A, %A using qtSeqMult" file1 file2
-                    let res = multInner qt1 qt2 standSemiring
+                    let res = multInner (cmatrToQt matr1) (cmatrToQt matr2) standSemiring
                     return! loop ()
+                | _ -> failwith "Something went wrong"
             }
         loop ()
-        )
+    )
 
 let qtParMult =
     MailboxProcessor.Start(fun inbox ->
@@ -146,13 +145,14 @@ let qtParMult =
                 | EOS ch ->
                     printfn "qtParMult is finished!"
                     ch.Reply()
-                | Qt (file1, qt1, file2, qt2) ->
+                | MatrsForMult (file1, matr1, file2, matr2) ->
                     printfn "Multing: %A, %A using qtParMult" file1 file2
-                    let res = parMultQuadTree qt1 qt2
+                    let res = parMultQuadTree (cmatrToQt matr1) (cmatrToQt matr2)
                     return! loop ()
+                | _ -> failwith "Something went wrong"
             }
         loop ()
-        )
+    )
 
 let arSeqMult =
     MailboxProcessor.Start(fun inbox ->
@@ -163,13 +163,14 @@ let arSeqMult =
                 | EOS ch ->
                     printfn "arSeqMult is finished!"
                     ch.Reply()
-                | Ar2d (file1, ar1, file2, ar2) ->
+                | MatrsForMult (file1, matr1, file2, matr2)  ->
                     printfn "Multing: %A, %A using arSeqMult" file1 file2
-                    let res = Ht3.matrixMult ar1 ar2
+                    let res = Ht3.matrixMult (cmatrTo2d matr1) (cmatrTo2d matr2)
                     return! loop ()
+                | _ -> failwith "Something went wrong"
             }
         loop ()
-        )
+    )
 
 let arParMult =
     MailboxProcessor.Start(fun inbox ->
@@ -180,13 +181,14 @@ let arParMult =
                 | EOS ch ->
                     printfn "arParMult is finished!"
                     ch.Reply()
-                | Ar2d (file1, ar1, file2, ar2) ->
+                | MatrsForMult (file1, matr1, file2, matr2) ->
                     printfn "Multing: %A, %A using arParMult" file1 file2
-                    let res = parMatrixMult ar1 ar2
+                    let res = parMatrixMult (cmatrTo2d matr1) (cmatrTo2d matr2)
                     return! loop ()
+                | _ -> failwith "Something went wrong"
             }
         loop ()
-        )
+    )
 
 let processSomeFilesAsync inputPath amount =
     let balancer = balancer qtSeqMult qtParMult arSeqMult arParMult
