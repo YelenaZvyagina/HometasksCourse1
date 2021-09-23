@@ -1,15 +1,15 @@
 open Argu
+open Hometask13.Configs
 open Hometask13.Ht13
 
     type CLIArguments =
-        |MultSome of path:string * amount:int
-        |MultAll of path:string
-
+        | MultSome of path:string * amount:int
+        | MultAll of path:string
         interface IArgParserTemplate with
             member s.Usage =
                 match s with
-                |MultSome _ -> "Multiplies concrete amount of pairs of matrices"
-                |MultAll _ -> "Multiplies all pairs of matrices"
+                | MultSome _ -> "Multiplies concrete amount of pairs of matrices"
+                | MultAll _ -> "Multiplies all pairs of matrices"
 
     [<EntryPoint>]
     let main (argv: string array) =

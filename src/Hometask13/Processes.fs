@@ -8,52 +8,48 @@ open MyTask
 open helpingFunctions
 open Configs
 
-type loaderMsg =
+type ldMsg =
     | Go of AsyncReplyChannel<unit>
-    | EOSl of AsyncReplyChannel<unit>
+    | EOS of AsyncReplyChannel<unit>
 
-type balancerMsg =
-    | EOSb of AsyncReplyChannel<unit>
+type blcMltMsg =
+    | EOS of AsyncReplyChannel<unit>
     | СompMatrs of mbMatrConf<CompMatrix>
 
-type multMsg =
-    | Qtseq of mbMatrConf<QuadTree<int>>
-    | Qtpar of mbMatrConf<QuadTree<int>>
-    | Ar2dseq of mbMatrConf<int [,]>
-    | Ar2dpar of mbMatrConf<int [,]>
-    | EOSmult of AsyncReplyChannel<unit>
-
-let matrixLoader inputPath (balancer:MailboxProcessor<balancerMsg>) count =
+let matrixLoader inputPath (balancer:MailboxProcessor<blcMltMsg>) count =
     MailboxProcessor.Start(fun inbox ->
         let rec loop files count =
             async{
                 let! msg = inbox.Receive()
                 match msg with
-                | EOSl ch ->
+                | ldMsg.EOS ch ->
                     printfn "Matrix loader is ready to finish!"
-                    balancer.PostAndReply (fun ch -> EOSb ch)
+                    balancer.PostAndReply blcMltMsg.EOS
                     printfn "Matrix loader is finished!"
                     ch.Reply()
                 | Go ch ->
                     match files with
                     | [] ->
-                        if count = 0 then
+                        if count = 0
+                        then
                             printfn "Matrix reading is finished!"
-                            inbox.Post (EOSl ch)
+                            inbox.Post (ldMsg.EOS ch)
                             return! loop files 0
-                        elif count > 0 then
+                        elif count > 0
+                        then
                             printfn "There are no more matrices to read. Matrix reading is finished. %A pairs read" count
-                            inbox.Post (EOSl ch)
+                            inbox.Post (ldMsg.EOS ch)
                             return! loop files 0
                         else failwith "Something went totally wrong"
                     | file1 :: file2 :: files ->
-                        if count = 0 then
+                        if count = 0
+                        then
                             printfn "Matrix reading is finished!"
-                            inbox.Post (EOSl ch)
+                            inbox.Post (ldMsg.EOS ch)
                             return! loop files 0
                         else
                             printfn "Loading: %A and %A" file1 file2
-                            let cmToSend = mbMatrConf( (toCompMatr file1), (toCompMatr file2), file1, file2, glConfigs)
+                            let cmToSend = mbMatrConf( (toCompMatr file1), (toCompMatr file2), file1, file2)
                             balancer.Post (СompMatrs cmToSend)
                             inbox.Post (Go ch)
                             return! loop files (count-1)
@@ -62,29 +58,29 @@ let matrixLoader inputPath (balancer:MailboxProcessor<balancerMsg>) count =
         loop (listAllFiles inputPath) count
     )
 
-let balancer (qtSeqMult : MailboxProcessor<multMsg>) (qtParMult : MailboxProcessor<multMsg>) (arSeqMult : MailboxProcessor<multMsg>) (arParMult: MailboxProcessor<multMsg>) =
+let balancer (qtSeqMult : MailboxProcessor<blcMltMsg>) (qtParMult : MailboxProcessor<blcMltMsg>) (arSeqMult : MailboxProcessor<blcMltMsg>) (arParMult: MailboxProcessor<blcMltMsg>) (cfg : configs<_>) =
     MailboxProcessor.Start(fun inbox ->
         let rec loop () =
             async{
                 let! msg = inbox.Receive()
                 match msg with
-                | EOSb ch ->
+                | blcMltMsg.EOS ch ->
                     printfn "Matrix balancer is ready to finish!"
-                    qtSeqMult.PostAndReply (fun ch -> EOSmult ch)
-                    arSeqMult.PostAndReply (fun ch -> EOSmult ch)
-                    qtParMult.PostAndReply (fun ch -> EOSmult ch)
-                    arParMult.PostAndReply (fun ch -> EOSmult ch)
+                    qtSeqMult.PostAndReply blcMltMsg.EOS
+                    arSeqMult.PostAndReply blcMltMsg.EOS
+                    qtParMult.PostAndReply blcMltMsg.EOS
+                    arParMult.PostAndReply blcMltMsg.EOS
                     printfn "Balancer is finished!"
                     ch.Reply()
-                | СompMatrs (cmToSend) ->
+                | СompMatrs cmToSend ->
                     if cmToSend.m1.lines = cmToSend.m2.columns
                     then
                         printfn "Processing %A and %A" cmToSend.fname1 cmToSend.fname2
-                        match mbMatrConf<int>.sizeSparsityCheck (cmToSend.m1) (cmToSend.m2) cmToSend.conf with
-                            | true, true -> qtParMult.Post (Qtpar (mbMatrConf<int>.confCmToQt cmToSend glConfigs))
-                            | true, false -> arParMult.Post (Ar2dpar (mbMatrConf<int>.confCmto2d cmToSend glConfigs))
-                            | false, true -> qtSeqMult.Post (Qtseq (mbMatrConf<int>.confCmToQt cmToSend glConfigs))
-                            | false, false -> arSeqMult.Post (Ar2dseq (mbMatrConf<int>.confCmto2d cmToSend glConfigs))
+                        match mbMatrConf<int>.sizeSparsityCheck cmToSend.m1 cmToSend.m2 cfg with
+                            | true, true -> qtParMult.Post (СompMatrs cmToSend)
+                            | true, false -> arParMult.Post (СompMatrs cmToSend)
+                            | false, true -> qtSeqMult.Post (СompMatrs cmToSend)
+                            | false, false -> arSeqMult.Post (СompMatrs cmToSend)
                         return! loop ()
                     else
                         printfn "Processing %A and %A" cmToSend.fname1 cmToSend.fname2
@@ -94,52 +90,53 @@ let balancer (qtSeqMult : MailboxProcessor<multMsg>) (qtParMult : MailboxProcess
         loop ()
     )
 
-let multiplier =
+let arMulter multfun =
     MailboxProcessor.Start(fun inbox ->
         let rec loop () =
             async{
                 let! msg = inbox.Receive()
                 match msg with
-                | EOSmult ch ->
-                    printfn "Mullting is finished!"
+                | blcMltMsg.EOS ch ->
+                    printfn "Array multing is finished!"
                     ch.Reply()
                     return! loop ()
-                | Qtseq qtToSend ->
-                    printfn "Multing: %A, %A using qtSeqMult" qtToSend.fname1 qtToSend.fname2
-                    let res = multInner qtToSend.m1 qtToSend.m2 standSemiring
+                | СompMatrs cmToSend ->
+                    printfn "Multing: %A, %A" cmToSend.fname1 cmToSend.fname2
+                    let res = multfun (cmatrTo2d cmToSend.m1) (cmatrTo2d cmToSend.m2)
                     return! loop ()
-                | Qtpar qtToSend ->
-                    printfn "Multing: %A, %A using qtParMult" qtToSend.fname1 qtToSend.fname2
-                    let res = parMultQuadTree qtToSend.m1 qtToSend.m2 standSemiring 1
-                    return! loop ()
-                | Ar2dseq ar2dToSend ->
-                    printfn "Multing: %A, %A using arSeqMult" ar2dToSend.fname1 ar2dToSend.fname2
-                    let res = Ht3.matrixMult ar2dToSend.m1 ar2dToSend.m2
-                    return! loop ()
-                | Ar2dpar ar2dToSend ->
-                    printfn "Multing: %A, %A using arParMult" ar2dToSend.fname1 ar2dToSend.fname2
-                    let res = parMatrixMult ar2dToSend.m1 ar2dToSend.m2
-                    return! loop ()
-
             }
         loop ()
-        )
+    )
 
-let arSeqMult = multiplier
-let arParMult = multiplier
-let qtSeqMult = multiplier
-let qtParMult = multiplier
+let qtMulter multfun (cfg : configs<_>) =
+    MailboxProcessor.Start(fun inbox ->
+        let rec loop () =
+            async{
+                let! msg = inbox.Receive()
+                match msg with
+                | blcMltMsg.EOS ch ->
+                    printfn "Quadtree multing is finished!"
+                    ch.Reply()
+                    return! loop ()
+                | СompMatrs cmToSend ->
+                    printfn "Multing: %A, %A" cmToSend.fname1 cmToSend.fname2
+                    let res = multfun (cmatrToQt cmToSend.m1) (cmatrToQt cmToSend.m2) cfg.astr cfg.parLim
+                    return! loop ()
+            }
+        loop ()
+    )
 
-let processSomeFilesAsync inputPath amount =
-    let balancer = balancer qtSeqMult qtParMult arSeqMult arParMult
+let qtSeqMb qt1 qt2 (astr : AlStruct<_>) lim = multInner qt1 qt2 astr
+
+let processFilesAsync inputPath amount =
+    let balancer = balancer (qtMulter qtSeqMb mainCfg) (qtMulter parMultQuadTree mainCfg) (arMulter Ht3.matrixMult) (arMulter parMatrixMult) mainCfg
     let matrixLoader = matrixLoader inputPath balancer amount
-    matrixLoader.PostAndReply(fun ch -> Go ch)
+    matrixLoader.PostAndReply Go
 
-let processAllFilesAsync inputPath =
-    let amount = (listAllFiles inputPath).Length/2
-    let balancer = balancer qtSeqMult qtParMult arSeqMult arParMult
-    let matrixLoader = matrixLoader inputPath balancer amount
-    matrixLoader.PostAndReply(fun ch -> Go ch)
+let processSomeFilesAsync inputPath amount = processFilesAsync inputPath amount
+let processAllFilesAsync inputPath = processFilesAsync inputPath ((listAllFiles inputPath).Length/2)
+
+
 
 
 
