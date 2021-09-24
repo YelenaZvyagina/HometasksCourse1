@@ -1,16 +1,17 @@
 namespace Ht8Tests
 
-module Ht8Tests = 
+module Ht8Tests =
 
     open System
     open Expecto
     open Quadtree
     open AlgStcruct
-    open MyTask.Ht3   
+    open MyTask.Ht3
+    open CompMatrices
 
     let monoidT = Monoid(new Monoid<int>(0, (+)))
     let semiringT = Semiring(new Semiring<int>(new Monoid<int>(0, (+)), (*)))
-    let qtws1 = new QuadTreeWithSize<int>( (Node (Leaf (3), None, Leaf (4), None)), 2, 2) 
+    let qtws1 = new QuadTreeWithSize<int>( (Node (Leaf (3), None, Leaf (4), None)), 2, 2)
     let qtws2 = new QuadTreeWithSize<int>( (Node (None, None, Leaf (34), None)), 2, 2)
     let qtws3 = new QuadTreeWithSize<int>(Node(Leaf (2), None, None, Leaf (3)), 2, 2)
     let qtws4 = new QuadTreeWithSize<int>(Node(None, Leaf (6), Leaf (1), None), 2, 2)
@@ -25,7 +26,7 @@ module Ht8Tests =
                 for j = 0 to c-1 do
                     if ar.[i, j] <> 0 then (i, j, ar.[i, j])
                 ]
-        let res = Quadtree.CompMatrix(l, c, lst)
+        let res = CompMatrices.CompMatrix(l, c, lst)
         Quadtree.cmatrToQtWS res
 
     let genRandomIntArray  =
@@ -34,12 +35,12 @@ module Ht8Tests =
             for j = 0 to 1 do
                 ar.[i, j] <- (new System.Random()).Next(0, 15)
         ar
- 
+
     [<Tests>]
     let quadTrTenzMultTests =
         testList "Tests for QuadTree tensor multipliction function"
             [
-             testCase "Tensor multiplicating matrices 2x2 and 2x2" <| fun _ -> 
+             testCase "Tensor multiplicating matrices 2x2 and 2x2" <| fun _ ->
               let result = (Quadtree.tenzMultQuadTr qtws4 qtws3 semiringT).qtree
               let exp = Node(None, (Node(Leaf(12), None, None, Leaf(18))), (Node(Leaf(2), None, None, Leaf(3))), None)
               Expect.equal result exp "We should get the same quadtrees as a result of tensor multiplication"
@@ -128,12 +129,12 @@ module Ht8Tests =
              testProperty "Comparing array and quadtree mult function" <| fun _ ->
                 let res = helper (MyTask.Ht3.matrixMult)
                 let qtres = (Quadtree.multQuadTrWS (Quadtree.first res) (Quadtree.second res) semiringT).qtree
-                Expect.equal qtres (Quadtree.third res) "Results of operations with arrays and Quadtree matrices should be equal" 
+                Expect.equal qtres (Quadtree.third res) "Results of operations with arrays and Quadtree matrices should be equal"
 
              testProperty "Comparing array and quadtree tensor product function" <| fun _ ->
                  let res = helper arTensMult
                  let qtres = (Quadtree.tenzMultQuadTr (Quadtree.first res) (Quadtree.second res) semiringT).qtree
-                 Expect.equal qtres (Quadtree.third res) "Results of operations with arrays and Quadtree matrices should be equal" 
+                 Expect.equal qtres (Quadtree.third res) "Results of operations with arrays and Quadtree matrices should be equal"
 
             ]
 
