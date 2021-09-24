@@ -1,12 +1,12 @@
-module Hometask13.Ht13
+module Processes
 
 open System
 open Hometask13
 open Quadtree
 open AlgStcruct
 open MyTask
-open helpingFunctions
 open Configs
+open CompMatrices
 
 type ldMsg =
     | Go of AsyncReplyChannel<unit>
@@ -16,9 +16,9 @@ type blcMltMsg =
     | EOS of AsyncReplyChannel<unit>
     | СompMatrs of mbMatrConf<CompMatrix>
 
-let matrixLoader inputPath (balancer:MailboxProcessor<blcMltMsg>) count =
+let matrixLoader inputPath (balancer:MailboxProcessor<blcMltMsg>) numOfPairs =
     MailboxProcessor.Start(fun inbox ->
-        let rec loop files count =
+        let rec loop files =
             async{
                 let! msg = inbox.Receive()
                 match msg with
@@ -30,32 +30,19 @@ let matrixLoader inputPath (balancer:MailboxProcessor<blcMltMsg>) count =
                 | Go ch ->
                     match files with
                     | [] ->
-                        if count = 0
-                        then
-                            printfn "Matrix reading is finished!"
-                            inbox.Post (ldMsg.EOS ch)
-                            return! loop files 0
-                        elif count > 0
-                        then
-                            printfn "There are no more matrices to read. Matrix reading is finished. %A pairs read" count
-                            inbox.Post (ldMsg.EOS ch)
-                            return! loop files 0
-                        else failwith "Something went totally wrong"
+                        printfn "Matrix reading is finished!"
+                        inbox.Post (ldMsg.EOS ch)
+                        return! loop files
                     | file1 :: file2 :: files ->
-                        if count = 0
-                        then
-                            printfn "Matrix reading is finished!"
-                            inbox.Post (ldMsg.EOS ch)
-                            return! loop files 0
-                        else
-                            printfn "Loading: %A and %A" file1 file2
-                            let cmToSend = mbMatrConf( (toCompMatr file1), (toCompMatr file2), file1, file2)
-                            balancer.Post (СompMatrs cmToSend)
-                            inbox.Post (Go ch)
-                            return! loop files (count-1)
+                        printfn "Loading: %A and %A" file1 file2
+                        let cmToSend = mbMatrConf( (toCompMatr file1), (toCompMatr file2), file1, file2)
+                        balancer.Post (СompMatrs cmToSend)
+                        inbox.Post (Go ch)
+                        return! loop files
                     | _ -> failwith "Total amount of matrices should be even"
             }
-        loop (listAllFiles inputPath) count
+        let fls = (listAllFiles inputPath).[.. (2*numOfPairs - 1)]
+        loop fls
     )
 
 let balancer (qtSeqMult : MailboxProcessor<blcMltMsg>) (qtParMult : MailboxProcessor<blcMltMsg>) (arSeqMult : MailboxProcessor<blcMltMsg>) (arParMult: MailboxProcessor<blcMltMsg>) (cfg : configs<_>) =
@@ -76,7 +63,7 @@ let balancer (qtSeqMult : MailboxProcessor<blcMltMsg>) (qtParMult : MailboxProce
                     if cmToSend.m1.lines = cmToSend.m2.columns
                     then
                         printfn "Processing %A and %A" cmToSend.fname1 cmToSend.fname2
-                        match mbMatrConf<int>.sizeSparsityCheck cmToSend.m1 cmToSend.m2 cfg with
+                        match sizeSparsityCheck cmToSend.m1 cmToSend.m2 cfg with
                             | true, true -> qtParMult.Post (СompMatrs cmToSend)
                             | true, false -> arParMult.Post (СompMatrs cmToSend)
                             | false, true -> qtSeqMult.Post (СompMatrs cmToSend)
@@ -90,7 +77,7 @@ let balancer (qtSeqMult : MailboxProcessor<blcMltMsg>) (qtParMult : MailboxProce
         loop ()
     )
 
-let arMulter multfun =
+let multiplier multfun transfun (cfg : configs<_>)  =
     MailboxProcessor.Start(fun inbox ->
         let rec loop () =
             async{
@@ -102,39 +89,26 @@ let arMulter multfun =
                     return! loop ()
                 | СompMatrs cmToSend ->
                     printfn "Multing: %A, %A" cmToSend.fname1 cmToSend.fname2
-                    let res = multfun (cmatrTo2d cmToSend.m1) (cmatrTo2d cmToSend.m2)
-                    return! loop ()
-            }
-        loop ()
-    )
-
-let qtMulter multfun (cfg : configs<_>) =
-    MailboxProcessor.Start(fun inbox ->
-        let rec loop () =
-            async{
-                let! msg = inbox.Receive()
-                match msg with
-                | blcMltMsg.EOS ch ->
-                    printfn "Quadtree multing is finished!"
-                    ch.Reply()
-                    return! loop ()
-                | СompMatrs cmToSend ->
-                    printfn "Multing: %A, %A" cmToSend.fname1 cmToSend.fname2
-                    let res = multfun (cmatrToQt cmToSend.m1) (cmatrToQt cmToSend.m2) cfg.astr cfg.parLim
+                    let res = multfun (transfun cmToSend.m1) (transfun cmToSend.m2) cfg.astr cfg.parLim
                     return! loop ()
             }
         loop ()
     )
 
 let qtSeqMb qt1 qt2 (astr : AlStruct<_>) lim = multInner qt1 qt2 astr
+let arSeqMb ar1 ar2 (astr : AlStruct<_>) lim = Ht3.matrixMult ar1 ar2
+let arParMult ar1 ar2 (astr : AlStruct<_>) lim= parMatrixMult ar1 ar2
 
 let processFilesAsync inputPath amount =
-    let balancer = balancer (qtMulter qtSeqMb mainCfg) (qtMulter parMultQuadTree mainCfg) (arMulter Ht3.matrixMult) (arMulter parMatrixMult) mainCfg
+    let balancer = balancer
+                       (multiplier qtSeqMb cmatrToQt mainCfg)
+                       (multiplier parMultQuadTree cmatrToQt mainCfg)
+                       (multiplier arSeqMb cmatrTo2d mainCfg)
+                       (multiplier arParMult cmatrTo2d mainCfg)
+                       mainCfg
     let matrixLoader = matrixLoader inputPath balancer amount
     matrixLoader.PostAndReply Go
 
-let processSomeFilesAsync inputPath amount = processFilesAsync inputPath amount
-let processAllFilesAsync inputPath = processFilesAsync inputPath ((listAllFiles inputPath).Length/2)
 
 
 

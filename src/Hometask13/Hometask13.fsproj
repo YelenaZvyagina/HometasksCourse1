@@ -7,7 +7,6 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <Compile Include="helpingFuncs.fs" />
         <Compile Include="Configs.fs" />
         <Compile Include="Processes.fs" />
         <Compile Include="Main.fs" />

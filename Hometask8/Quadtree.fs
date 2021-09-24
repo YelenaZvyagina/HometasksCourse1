@@ -2,31 +2,18 @@ module Quadtree
 
 open System
 open AlgStcruct
+open CompMatrices
 
 type QuadTree<'t> =
     | None
     | Leaf of 't
     | Node of QuadTree<'t> * QuadTree<'t> * QuadTree<'t> * QuadTree<'t>
 
-type CompMatrix =
-    val lines: int
-    val columns: int
-    val lstNonZero: list<int*int*int>
-    new (x, y, list) = {lines = x; columns = y; lstNonZero = list}
-
 type QuadTreeWithSize<'t> =
     val qtree: QuadTree<'t>
     val lines: int
     val columns: int
     new (qt, x, y) = {qtree = qt; lines = x; columns = y}
-
-let isPow2 n =
-    if n > 1
-    then double (int (Math.Log(double n, 2.0))) = Math.Log(double n, 2.0)
-    else false
-
-let toDeg2 m =
-    int (2.0**(Math.Log(double m, 2.0) + 1.0))
 
 let first (a, _, _) = a
 let second (_, b, _) = b
@@ -35,26 +22,6 @@ let third (_, _, c) = c
 let reduceNone (nw, ne, sw, se) =
     if sw = None && se = None && ne = None && nw = None then None
     else Node(nw, ne, sw, se)
-
-let toCompMatr input =
-    let strAr = System.IO.File.ReadAllLines input
-    let matLenForComp = (strAr.[0].Split()).Length
-    let l = [
-        for i = 0 to strAr.Length - 1 do
-            let arVals = strAr.[i].Split()
-            if arVals.Length <> matLenForComp then failwith "All of matrix's strings should contain the same amount of numbers"
-            for j = 0 to arVals.Length - 1 do
-                if arVals.[j] <> "0" then (i, j, int arVals.[j] - int "0")
-            ]
-    CompMatrix(strAr.Length, matLenForComp, l)
-
-let toExCompMatr (cm:CompMatrix) =
-    if cm.columns = cm.lines && isPow2 cm.lines then cm
-    else
-        let m = Math.Max (cm.lines, cm.columns)
-        if isPow2 m
-        then CompMatrix(m, m, cm.lstNonZero)
-        else CompMatrix(toDeg2 m, toDeg2 m, cm.lstNonZero)
 
 let div4matr (m: CompMatrix) =
     let l1 = List.filter(fun (i, j, k) -> i+1 <= m.lines/2 && j+1 <= m.columns/2) m.lstNonZero
@@ -100,11 +67,6 @@ let cmatrToQt (cm:CompMatrix) =
             let se = inner m4
             reduceNone (nw, ne, sw, se)
     inner (toExCompMatr cm)
-
-let cmatrTo2d (cm : CompMatrix) =
-    let matr2d = Array2D.zeroCreate cm.lines cm.columns
-    List.iter (fun (x, y, elem) -> matr2d.[x, y] <- elem ) cm.lstNonZero
-    matr2d
 
 let rec sumInner (qt1:QuadTree<int>) (qt2:QuadTree<int>) (astr:AlStruct<int>) =
     let oper = second (getPars astr)
@@ -205,3 +167,24 @@ let parMultQuadTree (qt1:QuadTree<int>) (qt2:QuadTree<int>) (astr: AlStruct<int>
                 reduceNone (nw, ne, sw, se)
         | _, _ -> failwith "something went wrong"
     inner qt1 qt2 0
+
+let parMatrixMult (m1: int[,]) (m2: int[,]) =
+    if (m1.GetLength 1 = m2.GetLength 0)
+    then
+        let a = m1.GetLength 0
+        let b = m1.GetLength 1
+        let c = m2.GetLength 1
+        let res = Array2D.zeroCreate a c
+        [ for i in 0 .. a - 1 ->
+            async {
+                do
+                    for j in 0 .. c - 1 do
+                        for k in 0 .. b - 1 do
+                            res.[i, j] <- res.[i, j] + (m1.[i, k] * m2.[k, j])
+            }
+        ]
+        |> Async.Parallel
+        |> Async.RunSynchronously
+        |> ignore
+        res
+    else failwith "It's impossible to multiply matrixes of this sizes"

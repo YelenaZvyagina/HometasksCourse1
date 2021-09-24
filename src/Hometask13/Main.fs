@@ -1,6 +1,6 @@
 open Argu
 open Hometask13.Configs
-open Hometask13.Ht13
+open Processes
 
     type CLIArguments =
         | MultSome of path:string * amount:int
@@ -21,11 +21,12 @@ open Hometask13.Ht13
             if args.Contains(MultSome)
             then
                 let inputpath, amount = args.GetResult(MultSome)
-                processSomeFilesAsync inputpath amount
+                processFilesAsync inputpath amount
+
             elif args.Contains(MultAll)
             then
                 let inputpath = args.GetResult(MultAll)
-                processAllFilesAsync inputpath
+                processFilesAsync inputpath ((listAllFiles inputpath).Length/2)
             else printfn "No such regime, sorry"
             0
         with
