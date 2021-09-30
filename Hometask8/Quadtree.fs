@@ -2,31 +2,18 @@ module Quadtree
 
 open System
 open AlgStcruct
+open CompMatrices
 
 type QuadTree<'t> =
     | None
     | Leaf of 't
     | Node of QuadTree<'t> * QuadTree<'t> * QuadTree<'t> * QuadTree<'t>
 
-type CompMatrix =
-    val lines: int
-    val columns: int
-    val lstNonZero: list<int*int*int>
-    new (x, y, list) = {lines = x; columns = y; lstNonZero = list}
-
 type QuadTreeWithSize<'t> =
     val qtree: QuadTree<'t>
     val lines: int
     val columns: int
     new (qt, x, y) = {qtree = qt; lines = x; columns = y}
-
-let isPow2 n =
-    if n > 1
-    then double (int (Math.Log(double n, 2.0))) = Math.Log(double n, 2.0)
-    else false
-
-let toDeg2 m =
-    int (2.0**(Math.Log(double m, 2.0) + 1.0))
 
 let first (a, _, _) = a
 let second (_, b, _) = b
@@ -35,26 +22,6 @@ let third (_, _, c) = c
 let reduceNone (nw, ne, sw, se) =
     if sw = None && se = None && ne = None && nw = None then None
     else Node(nw, ne, sw, se)
-
-let toCompMatr input =
-    let strAr = System.IO.File.ReadAllLines input
-    let matLenForComp = (strAr.[0].Split()).Length
-    let l = [
-        for i = 0 to strAr.Length - 1 do
-            let arVals = strAr.[i].Split()
-            if arVals.Length <> matLenForComp then failwith "All of matrix's strings should contain the same amount of numbers"
-            for j = 0 to arVals.Length - 1 do
-                if arVals.[j] <> "0" then (i, j, int arVals.[j] - int "0")
-            ]
-    CompMatrix(strAr.Length, matLenForComp, l)
-
-let toExCompMatr (cm:CompMatrix) =
-    if cm.columns = cm.lines && isPow2 cm.lines then cm
-    else
-        let m = Math.Max (cm.lines, cm.columns)
-        if isPow2 m
-        then CompMatrix(m, m, cm.lstNonZero)
-        else CompMatrix(toDeg2 m, toDeg2 m, cm.lstNonZero)
 
 let div4matr (m: CompMatrix) =
     let l1 = List.filter(fun (i, j, k) -> i+1 <= m.lines/2 && j+1 <= m.columns/2) m.lstNonZero
@@ -70,7 +37,7 @@ let div4matr (m: CompMatrix) =
     let m4 = new CompMatrix(m.lines/2, m.columns/2, l4m)
     (m1, m2, m3, m4)
 
-let cmatrToQtWS (cm:CompMatrix) = 
+let cmatrToQtWS (cm:CompMatrix) =
     let rec inner (m:CompMatrix) =
         if List.isEmpty m.lstNonZero then QuadTree.None
         elif m.lines = 1 && m.columns = 1 && m.lstNonZero.Length <> 0
@@ -86,6 +53,20 @@ let cmatrToQtWS (cm:CompMatrix) =
     let x = (toExCompMatr cm).lines
     let y = (toExCompMatr cm).columns
     QuadTreeWithSize(a, x, y)
+
+let cmatrToQt (cm:CompMatrix) =
+    let rec inner (m:CompMatrix) =
+        if List.isEmpty m.lstNonZero then QuadTree.None
+        elif m.lines = 1 && m.columns = 1 && m.lstNonZero.Length <> 0
+        then QuadTree.Leaf <| third (m.lstNonZero.Head)
+        else
+            let (m1, m2, m3, m4) = div4matr m
+            let nw = inner m1
+            let ne = inner m2
+            let sw = inner m3
+            let se = inner m4
+            reduceNone (nw, ne, sw, se)
+    inner (toExCompMatr cm)
 
 let rec sumInner (qt1:QuadTree<int>) (qt2:QuadTree<int>) (astr:AlStruct<int>) =
     let oper = second (getPars astr)
@@ -125,7 +106,7 @@ let multQuadTrWS (qtws1:QuadTreeWithSize<int>) (qtws2:QuadTreeWithSize<int>) (as
     if qtws1.lines = qtws2.columns then
         let qt1 = qtws1.qtree
         let qt2 = qtws2.qtree
-        let res = multInner qt1 qt2 astr 
+        let res = multInner qt1 qt2 astr
         QuadTreeWithSize(res, qtws1.lines, qtws2.columns)
     else failwith "Wrong sizes of matrices"
 
@@ -178,7 +159,7 @@ let parMultQuadTree (qt1:QuadTree<int>) (qt2:QuadTree<int>) (astr: AlStruct<int>
                 let s4 = async.Return (sumInner (inner sw1 ne2 (count + 1)) (inner se1 se2 (count + 1)) astr)
                 let s = [s1; s2; s3; s4] |> Async.Parallel |> Async.RunSynchronously
                 reduceNone (s.[0], s.[1], s.[2], s.[3])
-            else 
+            else
                 let nw = sumInner (multInner nw1 nw2 astr) (multInner ne1 sw2 astr) astr
                 let ne = sumInner (multInner nw1 ne2 astr) (multInner ne1 se2 astr) astr
                 let sw = sumInner (multInner sw1 nw2 astr) (multInner se1 sw2 astr) astr
@@ -186,3 +167,24 @@ let parMultQuadTree (qt1:QuadTree<int>) (qt2:QuadTree<int>) (astr: AlStruct<int>
                 reduceNone (nw, ne, sw, se)
         | _, _ -> failwith "something went wrong"
     inner qt1 qt2 0
+
+let parMatrixMult (m1: int[,]) (m2: int[,]) =
+    if (m1.GetLength 1 = m2.GetLength 0)
+    then
+        let a = m1.GetLength 0
+        let b = m1.GetLength 1
+        let c = m2.GetLength 1
+        let res = Array2D.zeroCreate a c
+        [ for i in 0 .. a - 1 ->
+            async {
+                do
+                    for j in 0 .. c - 1 do
+                        for k in 0 .. b - 1 do
+                            res.[i, j] <- res.[i, j] + (m1.[i, k] * m2.[k, j])
+            }
+        ]
+        |> Async.Parallel
+        |> Async.RunSynchronously
+        |> ignore
+        res
+    else failwith "It's impossible to multiply matrixes of this sizes"
