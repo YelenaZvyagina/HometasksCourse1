@@ -9,54 +9,50 @@
         Icon="/Assets/avalonia-logo.ico"
         Title="Gui">
     
-    
-
-    <DockPanel>
-        <Menu DockPanel.Dock="Top">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="0.08*" />
+            <RowDefinition Height="0.25*" />
+        </Grid.RowDefinitions>
+        
+        
+        <Menu Grid.Row="0">
             <MenuItem Header="_File">
                 <MenuItem Header="_Open file" Click="Open"/>
                 <MenuItem Header="_New file" Click="New" />
                 <MenuItem Header="_Save file" Click="Save" />
             </MenuItem>
-            <MenuItem Header="Run" Click="Run"/>
+            <MenuItem Name="Run" Header="Run" Click="Run"/>
         </Menu>
         
-        <Grid>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="*" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="0.25*" />
-            </Grid.RowDefinitions>
-            
-            <Grid Grid.Row="0">
-                <Border BorderBrush="Black" BorderThickness="1">
-                    <TextBox Name="CodeInput"
-                             FontWeight="Black"
-                             AcceptsReturn="True"
-                             BorderThickness="0"
-                             IsReadOnly="False"/>
-                </Border>
-                
-            </Grid>
-            
-            <Grid Grid.Row="1">
-                <Border BorderBrush="Black" BorderThickness="1">
-                    <TextBlock Name="Status"
-                             FontWeight="Black"/>
-                </Border>
-            </Grid>
-            
-            <Grid Grid.Row="2">
-                <Border BorderBrush="Black" BorderThickness="1">
-                    <TextBlock Name="Console"
-                             FontWeight="Black"/>
-                </Border>
-            </Grid>
-            
-            
+        <Grid Grid.Row="1">
+            <Border BorderBrush="Black" BorderThickness="1">
+                <TextBox Name="CodeInput"
+                         FontWeight="Black"
+                         AcceptsReturn="True"
+                         BorderThickness="0"
+                         IsReadOnly="False"/>
+            </Border>
         </Grid>
+        
+        <Grid Grid.Row="2">
+            <Border BorderBrush="Black" BorderThickness="1">
+                <TextBlock Name="Status"
+                           FontWeight="Black"/>
+            </Border>
+        </Grid>
+        
+        <Grid Grid.Row="3">
+            <Border BorderBrush="Black" BorderThickness="1">
+                <TextBlock Name="Console"
+                           FontWeight="Black"/>
+            </Border>
+        </Grid>
+        
+    </Grid>
     
-    </DockPanel>
     
     <Window.Styles>
         <Style Selector="MenuItem">

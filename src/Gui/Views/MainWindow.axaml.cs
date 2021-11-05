@@ -58,27 +58,32 @@ namespace Gui.Views
         private void Run(object? sender, RoutedEventArgs e)
         {
             _status.Text = "loading..";
-            _status.Background = Brushes.Yellow;
-            var (_, _, pDictionary) = run(parse(_codeInput.Text));
-            var k = pDictionary[outputBuffer];
-            var task = new Task<string>(() => k);
-            
-            task.ContinueWith(t =>
+            _run.IsEnabled = false;
+            var resStr = "";
+            var task = new Task<(string, string)>(() =>
+            {
+                try
+                {
+                    var (_, _, pDictionary) = run(parse(_codeInput.Text));
+                    var k = pDictionary[outputBuffer];
+                    resStr += k;
+                    return ("Computed successfully!", resStr);
+                }
+                catch (Exception ex)
+                {
+                    return (ex.Message, resStr);
+                }
+            });
+            task.ContinueWith(x => 
                 Dispatcher.UIThread.Post(() =>
                 {
-                    try
-                    {
-                        _console.Text += t.Result + "\n";
-                        _status.Background = Brushes.LawnGreen;
-                        _status.Text = "Computed successfully!";
-                    }
-                    catch (Exception exception)
-                    {
-                        _status.Background = Brushes.Red;
-                        _status.Text = exception.Message;
-                    }
-                    
-                }));
+                    var (status, res) = x.Result;
+                    _status.Text = status;
+                    _console.Text = res;
+                    _run.IsEnabled = true;
+                })
+            );
+            
             task.Start();
         }
 

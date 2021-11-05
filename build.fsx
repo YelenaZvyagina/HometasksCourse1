@@ -1,7 +1,7 @@
 #load ".fake/build.fsx/intellisense.fsx"
 #if !FAKE
-#r "Facades/netstandard"
-#r "netstandard"
+    #r "Facades/netstandard"
+    #r "netstandard"
 #endif
 open Argu
 open System
