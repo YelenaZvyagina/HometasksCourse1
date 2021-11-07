@@ -41,7 +41,7 @@ let environVarAsBoolOrDefault varName defaultValue =
 // Metadata and Configuration
 //-----------------------------------------------------------------------------
 
-let productName = "NyTask"
+let productName = "MyTask"
 let sln = "MyTask.sln"
 
 let src = __SOURCE_DIRECTORY__  @@ "src"
