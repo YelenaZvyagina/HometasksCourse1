@@ -1,7 +1,7 @@
 #load ".fake/build.fsx/intellisense.fsx"
 #if !FAKE
-    #r "Facades/netstandard"
-    #r "netstandard"
+#r "Facades/netstandard"
+#r "netstandard"
 #endif
 open Argu
 open System
@@ -41,7 +41,7 @@ let environVarAsBoolOrDefault varName defaultValue =
 // Metadata and Configuration
 //-----------------------------------------------------------------------------
 
-let productName = "MyTask"
+let productName = "NyTask"
 let sln = "MyTask.sln"
 
 let src = __SOURCE_DIRECTORY__  @@ "src"
@@ -102,8 +102,8 @@ let runtimes = [
 
 let disableCodeCoverage = environVarAsBoolOrDefault "DISABLE_COVERAGE" false
 
-let githubToken = Environment.environVarOrNone "GITHUB_TOKEN"
-Option.iter(TraceSecrets.register "<GITHUB_TOKEN>")
+let githubToken = Environment.environVarOrNone "MY_COOL_TOKEN"
+Option.iter(TraceSecrets.register "MY_COOL_TOKEN")
 
 //-----------------------------------------------------------------------------
 // Helpers
@@ -546,7 +546,7 @@ let githubRelease _ =
     |> GitHub.uploadFiles files
     |> GitHub.publishDraft
     |> Async.RunSynchronously
-
+(*
 let formatCode _ =
     [
         srcCodeGlob
@@ -564,7 +564,7 @@ let formatCode _ =
             Trace.logfn "Formatted %s" original
         | _ -> ()
     )
-
+*)
 //-----------------------------------------------------------------------------
 // Target Declaration
 //-----------------------------------------------------------------------------
@@ -575,7 +575,7 @@ Target.create "UpdateChangelog" updateChangelog
 Target.createBuildFailure "RevertChangelog" revertChangelog  // Do NOT put this in the dependency chain
 Target.createFinal "DeleteChangelogBackupFile" deleteChangelogBackupFile  // Do NOT put this in the dependency chain
 Target.create "DotnetBuild" dotnetBuild
-Target.create "FSharpAnalyzers" fsharpAnalyzers
+//Target.create "FSharpAnalyzers" fsharpAnalyzers
 Target.create "DotnetTest" dotnetTest
 Target.create "GenerateCoverageReport" generateCoverageReport
 Target.create "WatchApp" watchApp
@@ -584,7 +584,7 @@ Target.create "AssemblyInfo" generateAssemblyInfo
 Target.create "CreatePackages" createPackages
 Target.create "GitRelease" gitRelease
 Target.create "GitHubRelease" githubRelease
-Target.create "FormatCode" formatCode
+//Target.create "FormatCode" formatCode
 Target.create "Release" ignore
 
 //-----------------------------------------------------------------------------
@@ -610,7 +610,7 @@ Target.create "Release" ignore
 
 "DotnetRestore"
     ==> "DotnetBuild"
-    ==> "FSharpAnalyzers"
+    //==> "FSharpAnalyzers"
     ==> "DotnetTest"
     =?> ("GenerateCoverageReport", not disableCodeCoverage)
     ==> "CreatePackages"
