@@ -1,22 +1,13 @@
 <Window xmlns="https://github.com/avaloniaui"
-        xmlns:AvalonEdit="clr-namespace:AvaloniaEdit;assembly=AvaloniaEdit"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:gui="clr-namespace:Gui"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="Gui.Views.MainWindow"
         Icon="/Assets/avalonia-logo.ico"
         Title="Gui">
     
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
-            <RowDefinition Height="0.08*" />
-            <RowDefinition Height="0.25*" />
-        </Grid.RowDefinitions>
-        
+    <Grid RowDefinitions="Auto,*,0.05*,0.25*">
         
         <Menu Grid.Row="0">
             <MenuItem Header="_File">
@@ -24,7 +15,7 @@
                 <MenuItem Header="_New file" Click="New" />
                 <MenuItem Header="_Save file" Click="Save" />
             </MenuItem>
-            <MenuItem Name="Run" Header="Run" Click="Run"/>
+            <MenuItem Header="Run" Name="Run" Click="Run"/>
         </Menu>
         
         <Grid Grid.Row="1">
@@ -39,7 +30,7 @@
         
         <Grid Grid.Row="2">
             <Border BorderBrush="Black" BorderThickness="1">
-                <TextBlock Name="Status"
+                <TextBlock Name="StatusBar"
                            FontWeight="Black"/>
             </Border>
         </Grid>
@@ -52,7 +43,6 @@
         </Grid>
         
     </Grid>
-    
     
     <Window.Styles>
         <Style Selector="MenuItem">

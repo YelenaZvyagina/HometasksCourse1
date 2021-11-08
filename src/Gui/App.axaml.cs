@@ -12,7 +12,7 @@ namespace Gui
             AvaloniaXamlLoader.Load(this);
         }
 
-        public class MainWindowViewModel { }
+        private class MainWindowViewModel { }
         
         public override void OnFrameworkInitializationCompleted()
         {
