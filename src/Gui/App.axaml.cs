@@ -1,7 +1,10 @@
 using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using Gui.Views;
+using Gui.ViewModels;
 
 namespace Gui
 {
@@ -12,8 +15,6 @@ namespace Gui
             AvaloniaXamlLoader.Load(this);
         }
 
-        private class MainWindowViewModel { }
-        
         public override void OnFrameworkInitializationCompleted()
         {
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
