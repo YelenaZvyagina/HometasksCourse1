@@ -10,18 +10,18 @@ namespace Gui.Views
 {
     public class MainWindow : Window
     {
-        public static TextBox _codeInput;
+        public static TextBox CodeInput = null!;
         private readonly TextBlock _console;
-        public static TextBlock _statusBar;
-        public static string? filename;
+        public static TextBlock StatusBar = null!;
+        public static string? Filename;
 
         public MainWindow()
         {
             InitializeComponent();
-            _codeInput = this.Find<TextBox>( "CodeInput");
+            CodeInput = this.Find<TextBox>( "CodeInput");
             _console = this.Find<TextBlock>( "Console");
-            _statusBar = this.FindControl<TextBlock>("StatusBar");
-            filename = "";
+            StatusBar = this.FindControl<TextBlock>("StatusBar");
+            Filename = "";
         }
 
         public static readonly MainWindow main = new ();
@@ -33,28 +33,28 @@ namespace Gui.Views
 
         private void Run(object? sender, RoutedEventArgs routedEventArgs)
         {
-            if (string.IsNullOrEmpty(_codeInput.Text))
+            if (string.IsNullOrEmpty(CodeInput.Text))
             {
-                _statusBar.Text = "Empty entry, nothing to compute";
+                StatusBar.Text = "Empty entry, nothing to compute";
                 return;
             }
-            _statusBar.Text = "Computing";
+            StatusBar.Text = "Computing";
             var task = new Task(() =>
             {
                 try
                 {
-                    var (_, _, pd) = run(parse(_codeInput.Text));
+                    var (_, _, pd) = run(parse(CodeInput.Text));
                     Dispatcher.UIThread.Post(() =>
                     {
                         _console.Text = pd[outputBuffer];
-                        _statusBar.Text = "Computed successfully";
+                        StatusBar.Text = "Computed successfully";
                     });
                 }
                 catch (Exception ex)
                 {
                     Dispatcher.UIThread.Post(() =>
                     {
-                        _statusBar.Text = ex.Message;
+                        StatusBar.Text = ex.Message;
                     });
                 }
             });

@@ -17,31 +17,32 @@ namespace Gui.ViewModels
             var result = await dialog.ShowAsync(MainWindow.main);
             if (result is {Length: > 0})
             {
-                MainWindow._codeInput.Text = await File.ReadAllTextAsync(result[0]);
+                MainWindow.CodeInput.Text = await File.ReadAllTextAsync(result[0]);
             }
 
-            MainWindow.filename = result[0]; }
+            if (result != null) MainWindow.Filename = result[0];
+        }
         
         public async void Save()
         {
-            if (!string.IsNullOrEmpty(MainWindow.filename))
+            if (!string.IsNullOrEmpty(MainWindow.Filename))
             {
-                await File.WriteAllTextAsync(MainWindow.filename, MainWindow._codeInput.Text);
+                await File.WriteAllTextAsync(MainWindow.Filename, MainWindow.CodeInput.Text);
             }
             else
             {
                 var dialog = new SaveFileDialog
                 {
-                    InitialFileName = MainWindow.filename
+                    InitialFileName = MainWindow.Filename
                 };
                 var result = await dialog.ShowAsync(MainWindow.main);
                 if (result != null)
                 {
-                    await File.WriteAllTextAsync(result, MainWindow._codeInput.Text);
+                    await File.WriteAllTextAsync(result, MainWindow.CodeInput.Text);
                 }
             }
 
-            MainWindow._statusBar.Text = "Changes saved to " + Path.GetFileName(MainWindow.filename);    
+            MainWindow.StatusBar.Text = "Changes saved to " + Path.GetFileName(MainWindow.Filename);    
             
         }
         
@@ -51,9 +52,9 @@ namespace Gui.ViewModels
             var result = await dialog.ShowAsync(MainWindow.main);
             if (result != null)
             {
-                await File.WriteAllTextAsync(result, MainWindow._codeInput.Text);
+                await File.WriteAllTextAsync(result, MainWindow.CodeInput.Text);
             }
-            MainWindow.filename = result;
+            MainWindow.Filename = result;
         }
         
     }
