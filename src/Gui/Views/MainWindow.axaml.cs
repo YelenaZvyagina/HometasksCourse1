@@ -31,9 +31,9 @@ namespace Gui.Views
             AvaloniaXamlLoader.Load(this);
         }
         
-        private void PrintToConsole(string str)
+        private void PrintToConsole(string s)
         {
-            Dispatcher.UIThread.Post(() => _console.Text += str + '\n');
+            Dispatcher.UIThread.Post(() => _console.Text += s + '\n');
         }
 
         private void Run(object? sender, RoutedEventArgs routedEventArgs)
@@ -44,12 +44,11 @@ namespace Gui.Views
                 return;
             }
             StatusBar.Text = "Computing..";
-            var code = CodeInput.Text;
             var task = new Task(() =>
             {
                 try
                 {
-                    Interpreter.runPrint(Interpreter.parse(code));
+                    Interpreter.runPrint(Interpreter.parse(CodeInput.Text));
                     Dispatcher.UIThread.Post(() =>
                     {
                         StatusBar.Text = "Computed successfully";
