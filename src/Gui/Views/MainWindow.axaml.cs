@@ -4,7 +4,6 @@ using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using Avalonia.Threading;
-using static Interpreter;
 
 namespace Gui.Views
 {
@@ -18,6 +17,7 @@ namespace Gui.Views
         public MainWindow()
         {
             InitializeComponent();
+            Interpreter.printed.Subscribe(PrintToConsole);
             CodeInput = this.Find<TextBox>( "CodeInput");
             _console = this.Find<TextBlock>( "Console");
             StatusBar = this.FindControl<TextBlock>("StatusBar");
@@ -30,6 +30,11 @@ namespace Gui.Views
         {
             AvaloniaXamlLoader.Load(this);
         }
+        
+        private void PrintToConsole(string str)
+        {
+            Dispatcher.UIThread.Post(() => _console.Text += str + '\n');
+        }
 
         private void Run(object? sender, RoutedEventArgs routedEventArgs)
         {
@@ -38,15 +43,15 @@ namespace Gui.Views
                 StatusBar.Text = "Empty entry, nothing to compute";
                 return;
             }
-            StatusBar.Text = "Computing";
+            StatusBar.Text = "Computing..";
+            var code = CodeInput.Text;
             var task = new Task(() =>
             {
                 try
                 {
-                    var (_, _, pd) = run(parse(CodeInput.Text));
+                    Interpreter.runPrint(Interpreter.parse(code));
                     Dispatcher.UIThread.Post(() =>
                     {
-                        _console.Text = pd[outputBuffer];
                         StatusBar.Text = "Computed successfully";
                     });
                 }
