@@ -10,8 +10,8 @@ namespace Gui.Views
     public class MainWindow : Window
     {
         public static TextBox CodeInput = null!;
-        private readonly TextBlock _console;
-        public static TextBlock StatusBar = null!;
+        private readonly TextBox _console;
+        public static TextBox StatusBar = null!;
         public static string? Filename;
 
         public MainWindow()
@@ -19,8 +19,8 @@ namespace Gui.Views
             InitializeComponent();
             Interpreter.printed.Subscribe(PrintToConsole);
             CodeInput = this.Find<TextBox>( "CodeInput");
-            _console = this.Find<TextBlock>( "Console");
-            StatusBar = this.FindControl<TextBlock>("StatusBar");
+            _console = this.Find<TextBox>( "Console");
+            StatusBar = this.FindControl<TextBox>("StatusBar");
             Filename = "";
         }
 
@@ -52,6 +52,7 @@ namespace Gui.Views
                     Dispatcher.UIThread.Post(() =>
                     {
                         StatusBar.Text = "Computed successfully";
+                        _console.Text += "----------------------------------- \n";
                     });
                 }
                 catch (Exception ex)
