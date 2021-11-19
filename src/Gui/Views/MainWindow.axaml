@@ -33,14 +33,16 @@
         <Grid Grid.Row="2">
             <Border BorderBrush="Black" BorderThickness="1">
                 <TextBox Name="StatusBar"
-                         FontWeight="Black"/>
+                         FontWeight="Black"
+                         IsReadOnly="True"/>
             </Border>
         </Grid>
         
         <Grid Grid.Row="3">
             <Border BorderBrush="Black" BorderThickness="1">
                 <TextBox Name="Console"
-                           FontWeight="Black"/>
+                           FontWeight="Black"
+                           IsReadOnly="True"/>
             </Border>
         </Grid>
         
