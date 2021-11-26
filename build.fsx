@@ -16,7 +16,7 @@ open Fake.Core.TargetOperators
 open Fake.Api
 open Fake.BuildServer
 open Fantomas
-open Fantomas.FakeHelpers
+//open Fantomas.FakeHelpers
 
 BuildServer.install [
     AppVeyor.Installer
@@ -100,10 +100,11 @@ let runtimes = [
     "win-x64", "CreateZip"
 ]
 
+
 let disableCodeCoverage = environVarAsBoolOrDefault "DISABLE_COVERAGE" false
 
-let githubToken = Environment.environVarOrNone "GITHUB_TOKEN"
-Option.iter(TraceSecrets.register "<GITHUB_TOKEN>")
+let githubToken = Environment.environVarOrNone "MY_COOL_TOKEN"
+Option.iter(TraceSecrets.register "MY_COOL_TOKEN")
 
 //-----------------------------------------------------------------------------
 // Helpers
@@ -546,7 +547,7 @@ let githubRelease _ =
     |> GitHub.uploadFiles files
     |> GitHub.publishDraft
     |> Async.RunSynchronously
-
+(*
 let formatCode _ =
     [
         srcCodeGlob
@@ -564,7 +565,7 @@ let formatCode _ =
             Trace.logfn "Formatted %s" original
         | _ -> ()
     )
-
+*)
 //-----------------------------------------------------------------------------
 // Target Declaration
 //-----------------------------------------------------------------------------
@@ -575,7 +576,7 @@ Target.create "UpdateChangelog" updateChangelog
 Target.createBuildFailure "RevertChangelog" revertChangelog  // Do NOT put this in the dependency chain
 Target.createFinal "DeleteChangelogBackupFile" deleteChangelogBackupFile  // Do NOT put this in the dependency chain
 Target.create "DotnetBuild" dotnetBuild
-Target.create "FSharpAnalyzers" fsharpAnalyzers
+//Target.create "FSharpAnalyzers" fsharpAnalyzers
 Target.create "DotnetTest" dotnetTest
 Target.create "GenerateCoverageReport" generateCoverageReport
 Target.create "WatchApp" watchApp
@@ -584,7 +585,7 @@ Target.create "AssemblyInfo" generateAssemblyInfo
 Target.create "CreatePackages" createPackages
 Target.create "GitRelease" gitRelease
 Target.create "GitHubRelease" githubRelease
-Target.create "FormatCode" formatCode
+//Target.create "FormatCode" formatCode
 Target.create "Release" ignore
 
 //-----------------------------------------------------------------------------
@@ -610,7 +611,7 @@ Target.create "Release" ignore
 
 "DotnetRestore"
     ==> "DotnetBuild"
-    ==> "FSharpAnalyzers"
+    //==> "FSharpAnalyzers"
     ==> "DotnetTest"
     =?> ("GenerateCoverageReport", not disableCodeCoverage)
     ==> "CreatePackages"

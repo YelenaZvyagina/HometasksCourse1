@@ -1,0 +1,69 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        x:Class="Gui.Views.MainWindow"
+        xmlns:vm="using:Gui.ViewModels"
+        Icon="/Assets/avalonia-logo.ico"
+        d:DataContext="{d:DesignInstance vm:MainWindowViewModel}"
+        Title="Gui">
+    
+    <Grid RowDefinitions="Auto,*,0.05*,0.45*">
+        
+        <Menu Grid.Row="0">
+            <MenuItem Header="_File">
+                <MenuItem Header="_Open file" InputGesture="Ctrl + O" Command="{Binding Open}"/>
+                <MenuItem Header="_New file" InputGesture="Ctrl + N" Command="{Binding New}" />
+                <MenuItem Header="_Save file" InputGesture="Ctrl + S" Command="{Binding Save}" />
+            </MenuItem>
+            <MenuItem Header="Run" Name="Run" Click="Run"/>
+        </Menu>
+        
+        <Grid Grid.Row="1">
+            <Border BorderBrush="Black" BorderThickness="1">
+                <TextBox Name="CodeInput"
+                         FontWeight="Black"
+                         AcceptsReturn="True"
+                         BorderThickness="0"
+                         IsReadOnly="False"/>
+            </Border>
+        </Grid>
+        
+        <Grid Grid.Row="2">
+            <Border BorderBrush="Black" BorderThickness="1">
+                <TextBox Name="StatusBar"
+                         FontWeight="Black"
+                         IsReadOnly="True"/>
+            </Border>
+        </Grid>
+        
+        <Grid Grid.Row="3">
+            <Border BorderBrush="Black" BorderThickness="1">
+                <TextBox Name="Console"
+                           FontWeight="Black"
+                           IsReadOnly="True"/>
+            </Border>
+        </Grid>
+        
+    </Grid>
+    
+    <Window.Styles>
+        <Style Selector="MenuItem">
+            <Setter Property="Foreground" Value="#FFFFFFFF" />
+            <Setter Property="BorderThickness" Value="2" />
+            <Setter Property="Background" Value="#FB73C5" />
+            <Setter Property="BorderBrush" Value="#FFFFFFFF" />
+        </Style>
+        <Style Selector="MenuItem">
+            <Setter Property="CornerRadius" Value="10" />
+        </Style>
+    </Window.Styles>
+    
+    <Window.KeyBindings>
+        <KeyBinding Gesture="Ctrl+O" Command="{Binding Open}" />
+        <KeyBinding Gesture="Ctrl+S" Command="{Binding Save}" />
+        <KeyBinding Gesture="Ctrl+N" Command="{Binding New}" />
+    </Window.KeyBindings>
+
+</Window>
